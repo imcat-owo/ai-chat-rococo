@@ -105,8 +105,8 @@ img{display:block}
 .room-item:hover,.room-item.active{background:rgba(255,255,255,.65)}
 .room-item .r-name{font-family:"Fraunces",serif;font-size:16px;color:#5d4246;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .room-item .r-snip{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.room-item .r-x{margin-left:auto;flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
-  color:var(--ink-faint);font-size:15px;line-height:1}
+.room-item .r-x{margin-left:auto;flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  color:var(--ink-faint);font-size:16px;line-height:1}
 .room-item .r-x:hover{background:rgba(168,106,112,.14);color:var(--rose-deep)}
 .empty-note{padding:18px 12px;font-size:13px;line-height:1.9;color:var(--ink-soft);text-align:center}
 .side-foot{flex:none;display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
@@ -135,8 +135,8 @@ img{display:block}
 .empty-chat b{font-family:"Fraunces",serif;font-weight:400;font-size:21px;color:#5d4246;display:block;margin-bottom:8px}
 .empty-chat p{font-size:13.5px;line-height:2;color:var(--ink-soft)}
 .empty-chat .go-set{margin-top:18px;height:44px;padding:0 22px;border-radius:99px;font-size:13.5px;letter-spacing:.1em}
-.msg{display:flex;gap:10px;align-items:flex-start;animation:fade .3s ease}
-@keyframes fade{from{opacity:0}to{opacity:1}}
+.msg{display:flex;gap:10px;align-items:flex-start;animation:msgIn .32s cubic-bezier(.34,1.4,.64,1)}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .msg.me{flex-direction:row-reverse}
 .msg-body{min-width:0;max-width:78%}
 .msg-name{font-size:11.5px;letter-spacing:.18em;color:var(--ink-faint);margin:0 4px 5px}
@@ -171,6 +171,27 @@ img{display:block}
   box-shadow:0 8px 16px rgba(168,106,112,.3),inset 0 1px 0 rgba(255,255,255,.5)}
 .send-btn:active{transform:scale(.92)}
 .send-btn:disabled{opacity:.45}
+.send-btn.stop{background:linear-gradient(160deg,#b98d8d,#8f5a60)}
+.plus-btn{transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.plus-btn.open{transform:rotate(45deg)}
+.composer.focused{box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 2px rgba(168,106,112,.22),0 12px 30px rgba(120,74,80,.14)}
+.room-item{transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .18s}
+.room-item:active{transform:scale(.98)}
+.msg-actions button:active{transform:scale(.92);background:rgba(255,255,255,.85)}
+.side-foot button:active,.new-room:active{transform:scale(.97)}
+#closeSideBtn{display:none}
+@media (hover:none){.msg-actions{opacity:1}}
+.reply-chip{display:flex;align-items:center;gap:8px;margin:0 4px 8px;padding:8px 12px;border-radius:99px;font-size:12.5px;color:var(--ink-soft)}
+.reply-chip span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reply-chip button{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:var(--ink-faint);font-size:15px}
+.sheet{position:absolute;left:16px;bottom:122px;z-index:30;width:min(320px,calc(100% - 32px));border-radius:24px;padding:8px;
+  transform:translateY(12px) scale(.98);opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.32,.9,.35,1),opacity .22s}
+.sheet.show{transform:none;opacity:1;pointer-events:auto}
+.sheet button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:0 14px;height:48px;border-radius:16px;font-size:14.5px}
+.sheet button:hover{background:rgba(255,255,255,.7)}
+.sheet button:active{transform:scale(.98)}
+.sheet button svg{flex:none;opacity:.75}
+.sheet .sep{height:1px;background:rgba(168,106,112,.14);margin:4px 8px}
 .attach-preview{display:flex;gap:8px;padding:0 4px 8px}
 .attach-preview img{width:64px;height:64px;border-radius:14px;object-fit:cover}
 .attach-preview button{align-self:flex-start;color:var(--ink-faint);font-size:12px;padding:4px 8px}
@@ -248,6 +269,7 @@ svg.ic.s{width:16px;height:16px}
     box-shadow:18px 0 44px rgba(96,58,64,.18)}
   .sidebar.show{transform:none}
   .menu-btn{display:grid}
+  #closeSideBtn{display:grid}
   .head-status{display:none}
   .room-name-input{width:150px}
   .msg-body{max-width:84%}
@@ -311,19 +333,9 @@ svg.ic.s{width:16px;height:16px}
         </button>
         <button class="letter-av md" id="headAvatarBtn" aria-label="换房间头像"></button>
         <div style="min-width:0">
-          <input class="room-name-input" id="roomNameInput" value="" placeholder="房间名" aria-label="房间名">
+          <input class="room-name-input" id="roomNameInput" value="" placeholder="房间名" aria-label="房间名" title="点一下改名">
           <div class="head-status" id="headStatus"></div>
         </div>
-        <div class="head-spacer"></div>
-        <button class="icon-btn glass glass-btn" id="exportBtn" aria-label="导出当前对话">
-          <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        </button>
-        <button class="icon-btn glass glass-btn" id="clearBtn" aria-label="清空当前对话">
-          <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-        </button>
-        <button class="icon-btn glass glass-btn" id="headSettingsBtn" aria-label="设置">
-          <svg class="ic" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
-        </button>
       </header>
 
       <div class="chat-scroll" id="chatScroll">
@@ -346,9 +358,10 @@ svg.ic.s{width:16px;height:16px}
           <img id="attachImg" alt="要发送的图片">
           <button id="attachRemove">去掉</button>
         </div>
+        <div class="reply-chip glass hidden" id="replyChip"><span id="replyText"></span><button id="replyCancel" aria-label="取消引用">×</button></div>
         <div class="composer glass" id="composer">
-          <button class="icon-btn glass-btn" id="attachBtn" aria-label="发图片" style="width:40px;height:40px">
-            <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>
+          <button class="icon-btn glass glass-btn plus-btn" id="plusBtn" aria-label="更多功能" aria-expanded="false" style="width:44px;height:44px">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
           </button>
           <textarea id="input" rows="1" placeholder="写点什么…" aria-label="输入消息"></textarea>
           <button class="send-btn" id="sendBtn" aria-label="发送">
@@ -356,6 +369,17 @@ svg.ic.s{width:16px;height:16px}
           </button>
         </div>
         <div class="composer-hint" id="composerHint">回车发送 · Shift + 回车换行 · 对话和密钥只存在这台设备上</div>
+      </div>
+
+      <div class="sheet glass" id="sheet" role="menu" aria-label="更多功能">
+        <button id="sheetImage"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>发图片</button>
+        <button id="sheetRegen"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>重新生成上一条</button>
+        <button id="sheetCopy"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制上一条</button>
+        <button id="sheetExport"><svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>导出当前对话</button>
+        <button id="sheetNewRoom"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建房间</button>
+        <div class="sep"></div>
+        <button id="sheetClear"><svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>清空当前对话</button>
+        <button id="sheetSettings"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>设置</button>
       </div>
     </main>
   </div>
@@ -500,7 +524,7 @@ function renderRooms(){
       <button class="r-x" data-del="${r.id}" aria-label="删除房间">×</button></div>`;}).join("")
     ||`<div class="empty-note">没有房间了。<br>点上面「新建房间」开一个。</div>`;
   $$("#roomList .room-item").forEach(el=>{
-    el.onclick=e=>{if(e.target.closest("[data-del]"))return;state.currentId=el.dataset.id;save();renderAll();closeSidebar();};
+    el.onclick=e=>{if(e.target.closest("[data-del]"))return;state.currentId=el.dataset.id;save();renderAll();closeSidebar();toast("换到"+cur().name+"了");};
     el.onkeydown=e=>{if(e.key==="Enter"){state.currentId=el.dataset.id;save();renderAll();closeSidebar();}};
   });
   $$("#roomList [data-del]").forEach(b=>b.onclick=e=>{e.stopPropagation();
@@ -508,7 +532,7 @@ function renderRooms(){
     if(!confirm("删掉这个房间和里面的对话？"))return;
     state.rooms=state.rooms.filter(r=>r.id!==b.dataset.del);
     if(state.currentId===b.dataset.del)state.currentId=state.rooms[0].id;
-    save();renderAll();});
+    save();renderAll();toast("房间删掉了");});
 }
 function msgHTML(m,i){
   if(m.role==="me")return `<div class="msg me">${avatarHTML(state.myAvatar,state.myName,"sm")}
@@ -524,7 +548,7 @@ function msgHTML(m,i){
   return `<div class="msg">${avatarHTML(cur().avatarImg,cur().name,"sm")}
     <div class="msg-body"><div class="msg-name">${esc(cur().name)}</div>
     <div class="bubble ai glass">${esc(m.content)}</div>
-    <div class="msg-actions"><button data-act="copy" data-i="${i}">复制</button><button data-act="regen" data-i="${i}">重新生成</button><button data-act="del" data-i="${i}">删除</button></div>
+    <div class="msg-actions"><button data-act="copy" data-i="${i}">复制</button><button data-act="quote" data-i="${i}">引用</button><button data-act="regen" data-i="${i}">重新生成</button><button data-act="del" data-i="${i}">删除</button></div>
     <div class="msg-time">${fmtTime(m.time)}</div></div></div>`;
 }
 function renderMsgs(){
@@ -534,8 +558,11 @@ function renderMsgs(){
   $$("#msgList [data-act]").forEach(b=>b.onclick=()=>{
     const i=+b.dataset.i,m=cur().messages[i],act=b.dataset.act;
     if(act==="copy"&&navigator.clipboard)navigator.clipboard.writeText(m.content||"").then(()=>toast("复制好了"));
-    if(act==="del"){cur().messages.splice(i,1);save();renderMsgs();renderRooms();}
+    if(act==="del"){cur().messages.splice(i,1);save();renderMsgs();renderRooms();toast("删掉了");}
     if(act==="regen")regenerate();
+    if(act==="quote"){replyTo={name:cur().name,text:m.content||""};
+      $("#replyText").textContent="正在回复 "+cur().name+"："+(m.content||"").slice(0,40);
+      $("#replyChip").classList.remove("hidden");input.focus();}
   });
   requestAnimationFrame(()=>{const s=$("#chatScroll");s.scrollTop=s.scrollHeight;});
 }
@@ -575,10 +602,20 @@ function apiMessages(){
   return out;
 }
 function pushError(text){cur().messages.push({role:"error",content:text,time:Date.now()});save();renderMsgs();renderRooms();}
+let streaming=false, replyTo=null;
+function setStreaming(on){streaming=on;const b=$("#sendBtn");
+  b.classList.toggle("stop",on);
+  b.innerHTML=on?'<svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="3" fill="#fff" stroke="none"/></svg>'
+    :'<svg class="ic" viewBox="0 0 24 24" style="stroke:#fff"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+  b.setAttribute("aria-label",on?"停止":"发送");updateSendBtn();}
+function updateSendBtn(){const b=$("#sendBtn");if(!b)return;b.disabled=!streaming&&!input.value.trim()&&!attachImg;}
+function stickToBottom(){const s=$("#chatScroll");return s.scrollHeight-s.scrollTop-s.clientHeight<140;}
+function scrollBottom(){const s=$("#chatScroll");s.scrollTop=s.scrollHeight;}
 async function callAI(){
   const s=state.settings;
   const base=s.baseUrl.trim().replace(/\/+$/,"");
   aborter=new AbortController();
+  setStreaming(true);
   const typing=document.createElement("div");
   typing.className="msg"; typing.id="typingRow";
   typing.innerHTML=`${avatarHTML(cur().avatarImg,cur().name,"sm")}<div class="msg-body"><div class="msg-name">${esc(cur().name)}</div><div class="bubble ai glass typing"><i></i><i></i><i></i></div></div>
@@ -592,9 +629,9 @@ async function callAI(){
     res=await fetch(base+"/chat/completions",{method:"POST",signal:aborter.signal,
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.apiKey.trim()},
       body:JSON.stringify({model:s.model.trim(),messages:apiMessages(),temperature:+s.temp,stream:true})});
-  }catch(e){typing.remove();pushError(e.name==="AbortError"?"停下来了。":"发不出去："+e.message+"，检查一下接口地址能不能打开。");return;}
-  if(!res.ok){typing.remove();let t="";try{t=(await res.json()).error?.message||"";}catch(e){}pushError("接口报错 "+res.status+"："+(t||"检查一下密钥和模型名对不对。"));return;}
-  if(!res.body){typing.remove();pushError("接口没有返回流，换个支持流式的模型试试。");return;}
+  }catch(e){typing.remove();setStreaming(false);pushError(e.name==="AbortError"?"停下来了。":"发不出去："+e.message+"，检查一下接口地址能不能打开。");return;}
+  if(!res.ok){typing.remove();setStreaming(false);let t="";try{t=(await res.json()).error?.message||"";}catch(e){}pushError("接口报错 "+res.status+"："+(t||"检查一下密钥和模型名对不对。"));return;}
+  if(!res.body){typing.remove();setStreaming(false);pushError("接口没有返回流，换个支持流式的模型试试。");return;}
   typing.remove();
   const ai={role:"assistant",content:"",time:Date.now()};
   cur().messages.push(ai); save(); renderMsgs();
@@ -610,11 +647,11 @@ async function callAI(){
         if(data==="[DONE]")continue;
         try{const j=JSON.parse(data);const d=j.choices?.[0]?.delta?.content||"";if(d){ai.content+=d;
           const b=$$("#msgList .bubble.ai").pop(); if(b)b.textContent=ai.content;
-          $("#chatScroll").scrollTop=$("#chatScroll").scrollHeight;}}catch(e){}
+          if(stickToBottom())scrollBottom();}}catch(e){}
       }
     }
   }catch(e){ if(e.name!=="AbortError")pushError("回包断了："+e.message); }
-  save(); renderMsgs(); renderRooms();
+  setStreaming(false); save(); renderMsgs(); renderRooms();
 }
 function regenerate(){
   const list=cur().messages;
@@ -623,23 +660,29 @@ function regenerate(){
   save(); renderMsgs(); callAI();
 }
 function send(){
-  const text=$("#input").value.trim();
+  if(streaming)return;
+  let text=$("#input").value.trim();
   if(!text&&!attachImg)return;
   if(!configured()){toast("先去设置里填接口、密钥和模型");openDrawer();return;}
+  if(replyTo){text="（回复"+replyTo.name+"："+replyTo.text.slice(0,60)+"）\n"+text;hideReply();}
   cur().messages.push({role:"me",content:text,img:attachImg||undefined,time:Date.now()});
-  $("#input").value=""; autoGrow(); clearAttach(); save(); renderMsgs(); renderRooms(); closeSidebarIfMobile();
+  $("#input").value=""; autoGrow(); clearAttach(); updateSendBtn(); save(); renderMsgs(); renderRooms(); closeSidebarIfMobile();
+  input.focus();
   callAI();
 }
+function hideReply(){replyTo=null;$("#replyChip").classList.add("hidden");}
 /* ---------- 输入与发送 ---------- */
 const input=$("#input");
 function autoGrow(){input.style.height="auto";input.style.height=Math.min(input.scrollHeight,132)+"px";}
-input.addEventListener("input",autoGrow);
+input.addEventListener("input",()=>{autoGrow();updateSendBtn();});
+input.addEventListener("focus",()=>$("#composer").classList.add("focused"));
+input.addEventListener("blur",()=>$("#composer").classList.remove("focused"));
 input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}});
-$("#sendBtn").onclick=send;
-$("#attachBtn").onclick=()=>$("#imgFile").click();
-$("#imgFile").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;
-  const r=new FileReader();r.onload=()=>{attachImg=r.result;$("#attachImg").src=attachImg;$("#attachPreview").classList.remove("hidden");};r.readAsDataURL(f);});
-function clearAttach(){attachImg=null;$("#attachPreview").classList.add("hidden");$("#imgFile").value="";}
+$("#sendBtn").onclick=()=>{if(streaming){aborter&&aborter.abort();return;}send();};
+$("#replyCancel").onclick=hideReply;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSheet();closeDrawer();closeSidebar();hideReply();}});
+$("#imgFile").addEventListener("change",e=>readImageFile(e.target.files[0],1024,d=>{attachImg=d;$("#attachImg").src=attachImg;$("#attachPreview").classList.remove("hidden");updateSendBtn();}));
+function clearAttach(){attachImg=null;$("#attachPreview").classList.add("hidden");$("#imgFile").value="";updateSendBtn();}
 $("#attachRemove").onclick=clearAttach;
 
 /* ---------- 房间 ---------- */
@@ -650,13 +693,24 @@ $("#newRoomBtn").onclick=()=>{
   $("#roomNameInput").focus();$("#roomNameInput").select();
 };
 $("#roomNameInput").addEventListener("change",e=>{const v=e.target.value.trim();if(!v){e.target.value=cur().name;return;}
-  cur().name=v;save();renderRooms();renderHead();});
+  cur().name=v;save();renderRooms();renderHead();toast("改好了");});
 $("#roomNameInput").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 $("#searchInput").addEventListener("input",renderRooms);
-$("#exportBtn").onclick=()=>{
+function exportCurrent(){
   const txt=cur().messages.map(m=>((m.role==="me"?state.myName||"我":m.role==="error"?"提示":cur().name)+" "+fmtTime(m.time)+"："+(m.content||""))).join("\n\n");
-  download(new Blob([txt],{type:"text/plain;charset=utf-8"}),cur().name+"-对话.txt");toast("对话导出好了");};
-$("#clearBtn").onclick=()=>{if(!confirm("清空这个房间的对话？"))return;cur().messages=[];save();renderMsgs();renderRooms();};
+  download(new Blob([txt],{type:"text/plain;charset=utf-8"}),cur().name.replace(/[\\/:*?"<>|]/g,"-")+"-对话.txt");toast("对话导出好了");}
+function closeSheet(){const s=$("#sheet");if(!s)return;s.classList.remove("show");$("#plusBtn").classList.remove("open");$("#plusBtn").setAttribute("aria-expanded","false");}
+$("#plusBtn").onclick=e=>{e.stopPropagation();const s=$("#sheet");const open=!s.classList.contains("show");
+  s.classList.toggle("show",open);$("#plusBtn").classList.toggle("open",open);$("#plusBtn").setAttribute("aria-expanded",String(open));};
+document.addEventListener("click",e=>{if(!e.target.closest("#sheet")&&!e.target.closest("#plusBtn"))closeSheet();});
+$("#sheetImage").onclick=()=>{closeSheet();$("#imgFile").click();};
+$("#sheetExport").onclick=()=>{closeSheet();exportCurrent();};
+$("#sheetRegen").onclick=()=>{closeSheet();regenerate();};
+$("#sheetCopy").onclick=()=>{closeSheet();const l=cur().messages.filter(m=>m.role==="assistant").pop();
+  if(l&&navigator.clipboard)navigator.clipboard.writeText(l.content).then(()=>toast("复制好了"));else toast("还没有可以复制的回复");};
+$("#sheetNewRoom").onclick=()=>{closeSheet();$("#newRoomBtn").click();};
+$("#sheetClear").onclick=()=>{closeSheet();if(!confirm("清空这个房间的对话？"))return;cur().messages=[];save();renderMsgs();renderRooms();toast("清空了");};
+$("#sheetSettings").onclick=()=>{closeSheet();openDrawer();};
 $("#exportAllBtn").onclick=()=>{download(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),"letters-chat-backup.json");toast("全部备份导出好了");};
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
 
@@ -669,9 +723,9 @@ $("#closeSideBtn").onclick=closeSidebar;
 /* ---------- 设置抽屉 ---------- */
 function openDrawer(){$("#drawer").classList.add("show");$("#scrim").classList.add("show");}
 function closeDrawer(){$("#drawer").classList.remove("show");$("#scrim").classList.remove("show");}
-$("#settingsBtn").onclick=openDrawer;$("#headSettingsBtn").onclick=openDrawer;$("#emptyGoSet").onclick=openDrawer;
+$("#settingsBtn").onclick=openDrawer;$("#emptyGoSet").onclick=openDrawer;
 $("#drawerClose").onclick=closeDrawer;$("#scrim").onclick=()=>{closeDrawer();closeSidebar();};
-$("#headAvatarBtn").onclick=()=>{openDrawer();$("#roomAvatarFile").click();};
+$("#headAvatarBtn").onclick=()=>{openDrawer();};
 
 /* 接入设置 */
 function bindSetting(id,key,parse){
@@ -700,11 +754,17 @@ $("#testConnBtn").onclick=async()=>{
 
 /* 上传：壁纸 / 头像（只存本机） */
 function readFile(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file);}
-$("#wallFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{state.wallpaper=d;applyWallpaper();save();toast("壁纸换好了");}));
+function downscale(dataUrl,maxDim,quality){return new Promise(res=>{const img=new Image();
+  img.onload=()=>{const k=Math.min(1,maxDim/Math.max(img.width,img.height));const c=document.createElement("canvas");
+    c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",quality));};
+  img.onerror=()=>res(dataUrl);img.src=dataUrl;});}
+function readImageFile(file,maxDim,cb){if(!file)return;readFile(file,d=>downscale(d,maxDim,.85).then(cb));}
+$("#wallFile").addEventListener("change",e=>readImageFile(e.target.files[0],1600,d=>{state.wallpaper=d;applyWallpaper();save();toast("壁纸换好了");}));
 $("#wallReset").onclick=()=>{state.wallpaper=null;applyWallpaper();save();toast("壁纸恢复成淡纸纹了");};
-$("#myAvatarFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{state.myAvatar=d;save();renderMsgs();renderHead();toast("你的头像换好了");}));
+$("#myAvatarFile").addEventListener("change",e=>readImageFile(e.target.files[0],512,d=>{state.myAvatar=d;save();renderMsgs();renderHead();toast("你的头像换好了");}));
 $("#myAvatarReset").onclick=()=>{state.myAvatar=null;save();renderMsgs();renderHead();toast("恢复成字母了");};
-$("#roomAvatarFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{cur().avatarImg=d;save();renderAll();toast("房间头像换好了");}));
+$("#roomAvatarFile").addEventListener("change",e=>readImageFile(e.target.files[0],512,d=>{cur().avatarImg=d;save();renderAll();toast("房间头像换好了");}));
 $("#roomAvatarReset").onclick=()=>{cur().avatarImg=null;save();renderAll();toast("恢复成字母了");};
 
 /* 外观调节器 */
@@ -748,7 +808,7 @@ $("#wipeBtn").onclick=()=>{if(!confirm("清空全部数据？所有房间、对�
 
 /* 初始化 */
 $("#dateLine").textContent=new Date().toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"long"});
-applySettings();renderAll();autoGrow();
+applySettings();renderAll();autoGrow();updateSendBtn();
 </script>
 </body>
 </html>
