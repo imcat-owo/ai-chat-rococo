@@ -3,172 +3,150 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>小家 · AI 聊天</title>
+<title>AI 聊天</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* 一套默认主题：浅奶粉底 + 豆沙玫瑰。没有预设主题包，颜色、壁纸、头像都由使用者自己调、自己传。 */
+/* 默认只有一套淡奶粉底。没有预设主题、没有预设头像、没有预设对话。
+   颜色、壁纸、头像、房间、提示词全部由使用者自己填、自己传。 */
 :root{
-  --paper:#fbf4ef; --paper-2:#f6e9e4; --cream:#fffaf6;
-  --rose:#c98a8f; --rose-deep:#a86a70; --rose-soft:#e8c4c4; --rose-pale:#f3dfe0;
-  --ink:#4a3a3c; --ink-soft:#7d6a6c; --ink-faint:#a68f91;
-  --gold:#c2a06b; --gold-soft:#d9c39a; --sage:#8a8f7a;
-  --bubble-ai:#fffdfb; --bubble-me:#d9a7a8; --accent:#b76e79;
+  --paper:#fdf9f6; --paper-2:#f8efea; --cream:#fffdfb;
+  --rose:#c9a0a2; --rose-deep:#a86a70; --rose-soft:#e6cfcd; --rose-pale:#f3e4e2;
+  --ink:#4a3a3c; --ink-soft:#857476; --ink-faint:#ab9a9b;
+  --gold:#c2a06b; --line:rgba(194,160,107,.38);
+  --bubble-me:#ecd6d3; --accent:#a86a70;
   --font-size:15px;
-  --glass-blur:14px; --glass-alpha:.58; --glass-refract:26; --glass-edge:25; --glass-shine:13;
-  --radius:22px;
+  --glass-blur:14px; --glass-alpha:.58; --glass-refract:26; --glass-shine:13;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{
-  font-family:"Noto Serif SC","Cormorant Garamond",serif; font-size:var(--font-size);
-  color:var(--ink); background:#e9dcd8; overflow:hidden;
+  font-family:"Noto Serif SC",serif; font-size:var(--font-size);
+  color:var(--ink); background:var(--paper);
+  position:fixed; inset:0;
 }
 button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,textarea,select{font-family:inherit;color:inherit}
 img{display:block}
-:focus-visible{outline:2px solid var(--rose);outline-offset:2px;border-radius:8px}
+:focus-visible{outline:2px solid var(--rose-deep);outline-offset:2px;border-radius:8px}
 ::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-thumb{background:#d8bcbc;border-radius:99px}
+::-webkit-scrollbar-thumb{background:#dcc6c4;border-radius:99px}
 ::-webkit-scrollbar-track{background:transparent}
 
-/* ---------- 壁纸层：她那张做旧豆沙粉玫瑰纸，洗淡，只做底 ---------- */
+/* ---------- 壁纸层：锁死的底，不跟滚动走；默认只有淡纸纹，没有照片 ---------- */
 .wallpaper{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--paper)}
-.wallpaper img{width:100%;height:100%;object-fit:cover;object-position:28% 30%;
-  filter:saturate(.82) brightness(1.06) contrast(.94);opacity:.92;transform:scale(1.02)}
-.wallpaper::after{content:"";position:absolute;inset:0;
+.wallpaper .paper{position:absolute;inset:0;
   background:
-    linear-gradient(180deg,rgba(251,244,239,.34),rgba(251,244,239,.18) 42%,rgba(251,244,239,.52)),
-    radial-gradient(120% 90% at 50% 0%,transparent 55%,rgba(251,244,239,.5));
-  /* 旧纸横纹 + 细金线 */
-}
-.wallpaper .paper-lines{position:absolute;inset:0;opacity:.5;
-  background:repeating-linear-gradient(180deg,transparent 0 46px,rgba(184,110,121,.07) 46px 47px,transparent 47px 92px)}
-.wallpaper .lace{position:absolute;width:340px;height:340px;opacity:.55;pointer-events:none}
-.wallpaper .lace.tl{top:-70px;left:-70px}
-.wallpaper .lace.br{bottom:-80px;right:-70px;transform:rotate(180deg)}
+    radial-gradient(90% 60% at 50% 0%,#fffdfb 0%,transparent 70%),
+    repeating-linear-gradient(180deg,transparent 0 56px,rgba(168,106,112,.045) 56px 57px,transparent 57px 112px),
+    linear-gradient(180deg,var(--paper),var(--paper-2));}
+.wallpaper img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.wallpaper .lace{position:absolute;top:14px;right:18px;width:120px;opacity:.35;pointer-events:none}
 
-/* ---------- 液态玻璃：按 liquid-glass-note 的基线 ---------- */
-/* refract 26 / tint 0 / blur 0 / edge 25 / shine 13 / wobble 15。
+/* ---------- 液态玻璃：liquid-glass-note 基线 refract 26 / edge 25 / shine 13 ----------
    厚度感靠背景对比、分层投影和边缘明暗，不靠死命加模糊和整圈白边。 */
 .glass{
   position:relative;
   background:linear-gradient(135deg,rgba(255,253,251,var(--glass-alpha)),rgba(255,250,246,calc(var(--glass-alpha) - .14)));
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(1.35) brightness(1.04);
-  backdrop-filter:blur(var(--glass-blur)) saturate(1.35) brightness(1.04);
-  border:1px solid rgba(255,255,255,.72);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(1.3) brightness(1.03);
+  backdrop-filter:blur(var(--glass-blur)) saturate(1.3) brightness(1.03);
+  border:1px solid rgba(255,255,255,.75);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.9),
-    inset 0 -1px 0 rgba(184,110,121,.14),
-    inset 1px 0 0 rgba(255,255,255,.45),
-    0 10px 28px rgba(120,74,80,.14),
-    0 2px 6px rgba(120,74,80,.08);
+    inset 0 -1px 0 rgba(168,106,112,.12),
+    0 10px 28px rgba(120,74,80,.10),
+    0 2px 6px rgba(120,74,80,.06);
 }
 .glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:linear-gradient(115deg,rgba(255,255,255,.55) 0%,transparent 22%,transparent 78%,rgba(255,255,255,.22) 100%);
+  background:linear-gradient(115deg,rgba(255,255,255,.5) 0%,transparent 22%,transparent 78%,rgba(255,255,255,.18) 100%);
   opacity:calc(var(--glass-shine) / 26);}
-.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),inset 0 -8px 14px -8px rgba(168,106,112,.28);}
-.glass-btn{transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s,background .18s}
+.glass-btn{transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s}
 .glass-btn:active{transform:scale(.94)}
-.glass-btn:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 12px 30px rgba(120,74,80,.18),0 2px 6px rgba(120,74,80,.1)}
 
-/* ---------- 整体布局 ---------- */
-.app{position:relative;z-index:1;display:flex;height:100dvh;
+/* ---------- 锁死的壳：整页 fixed，只有消息区能滚 ---------- */
+.app{position:fixed;inset:0;z-index:1;display:flex;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 10px calc(env(safe-area-inset-bottom,0px) + 10px);
-  gap:10px;max-width:1280px;margin:0 auto}
-.frame{flex:1;display:flex;min-width:0;border-radius:28px;overflow:hidden;position:relative;
-  box-shadow:0 24px 60px rgba(96,58,64,.22),0 4px 14px rgba(96,58,64,.12)}
+  max-width:1240px;margin:0 auto}
+.frame{flex:1;display:flex;min-width:0;min-height:0;border-radius:26px;overflow:hidden;position:relative;
+  box-shadow:0 22px 54px rgba(96,58,64,.16),0 4px 14px rgba(96,58,64,.08)}
+
+/* ---------- 字母头像：没有真人照片，默认就是一个字母，图片由使用者自己传 ---------- */
+.letter-av{flex:none;display:grid;place-items:center;border-radius:50%;
+  font-family:"Fraunces",serif;font-weight:400;color:var(--rose-deep);
+  background:linear-gradient(150deg,#fffdfb,#f3e4e2);
+  box-shadow:0 0 0 1px #fff,0 0 0 2px var(--rose-soft),0 4px 10px rgba(120,74,80,.14);
+  overflow:hidden;user-select:none}
+.letter-av img{width:100%;height:100%;object-fit:cover}
+.letter-av.sm{width:38px;height:38px;font-size:17px}
+.letter-av.md{width:48px;height:48px;font-size:21px}
+.letter-av.lg{width:64px;height:64px;font-size:27px;border-radius:20px}
 
 /* ---------- 左栏 ---------- */
-.sidebar{width:308px;flex:none;display:flex;flex-direction:column;min-height:0;
+.sidebar{width:300px;flex:none;display:flex;flex-direction:column;min-height:0;
   border-right:1px solid rgba(255,255,255,.65);
-  background:linear-gradient(180deg,rgba(255,251,248,.66),rgba(250,238,234,.55));
-  -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3)}
-.side-cover{position:relative;height:118px;flex:none;overflow:hidden}
-.side-cover img{width:100%;height:100%;object-fit:cover;filter:saturate(.85) brightness(1.05)}
-.side-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(251,244,239,.92) 96%)}
-.side-cover .cover-title{position:absolute;left:18px;bottom:10px;z-index:2}
-.cover-title .en{font-family:"Fraunces",serif;font-style:italic;font-weight:400;font-size:22px;letter-spacing:.04em;color:#6b4a4e}
-.cover-title .cn{font-size:11px;letter-spacing:.42em;color:var(--ink-soft);margin-top:2px}
-.side-cover .cover-flourish{position:absolute;right:14px;bottom:12px;z-index:2;width:64px;opacity:.8}
-.side-body{flex:1;display:flex;flex-direction:column;min-height:0;padding:12px 12px 14px;gap:10px}
+  background:linear-gradient(180deg,rgba(255,251,248,.7),rgba(250,238,234,.55));
+  -webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25)}
+.side-head{flex:none;padding:16px 16px 10px;display:flex;align-items:baseline;gap:10px}
+.side-head .t{font-family:"Fraunces",serif;font-style:italic;font-size:23px;color:#5d4246}
+.side-head .n{font-size:11px;letter-spacing:.3em;color:var(--ink-faint)}
+.side-body{flex:1;display:flex;flex-direction:column;min-height:0;padding:0 12px 14px;gap:10px}
 .search-row{display:flex;gap:8px}
 .search-box{flex:1;display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:99px}
-.search-box svg{flex:none;opacity:.65}
+.search-box svg{flex:none;opacity:.6}
 .search-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14px}
 .search-box input::placeholder{color:var(--ink-faint)}
 .icon-btn{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:50%}
-.new-chat{height:46px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:8px;
-  font-size:14px;letter-spacing:.14em;color:#6b4a4e}
-.new-chat svg{opacity:.8}
-.personas{display:flex;flex-direction:column;gap:8px}
-.persona{display:flex;gap:11px;align-items:center;text-align:left;padding:9px;border-radius:20px;width:100%;
-  transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
-.persona:active{transform:scale(.97)}
-.persona.active{background:rgba(255,255,255,.72);box-shadow:inset 0 1px 0 #fff,0 6px 16px rgba(120,74,80,.12)}
-.persona .p-photo{width:52px;height:52px;flex:none;border-radius:16px;overflow:hidden;position:relative;
-  box-shadow:0 4px 10px rgba(120,74,80,.2)}
-.persona .p-photo img{width:100%;height:100%;object-fit:cover}
-.persona .p-photo::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
-.persona .p-name{font-family:"Fraunces",serif;font-size:16px;color:#5d4246}
-.persona .p-desc{font-size:12px;color:var(--ink-soft);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.persona .p-dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:#9db08a;flex:none;box-shadow:0 0 0 3px rgba(157,176,138,.25)}
+.new-room{height:46px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:14px;letter-spacing:.14em;color:#5d4246}
 .side-label{font-size:11px;letter-spacing:.34em;color:var(--ink-faint);padding:2px 6px 0}
-.history{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px;min-height:60px}
-.hist-item{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:9px 10px;border-radius:16px}
-.hist-item:hover,.hist-item.active{background:rgba(255,255,255,.6)}
-.hist-item img{width:38px;height:38px;border-radius:12px;object-fit:cover;flex:none}
-.hist-item .h-t{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hist-item .h-s{font-size:11.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.side-foot{display:flex;gap:8px;padding-top:4px;border-top:1px solid rgba(184,110,121,.18)}
+.room-list{flex:1;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:2px;min-height:60px}
+.room-item{display:flex;gap:11px;align-items:center;width:100%;text-align:left;padding:9px 10px;border-radius:18px}
+.room-item:hover,.room-item.active{background:rgba(255,255,255,.65)}
+.room-item .r-name{font-family:"Fraunces",serif;font-size:16px;color:#5d4246;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room-item .r-snip{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.room-item .r-x{margin-left:auto;flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  color:var(--ink-faint);font-size:15px;line-height:1}
+.room-item .r-x:hover{background:rgba(168,106,112,.14);color:var(--rose-deep)}
+.empty-note{padding:18px 12px;font-size:13px;line-height:1.9;color:var(--ink-soft);text-align:center}
+.side-foot{flex:none;display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
 .side-foot button{flex:1;height:42px;border-radius:99px;font-size:13px;letter-spacing:.08em;display:flex;align-items:center;justify-content:center;gap:6px}
 
-/* ---------- 聊天主区 ---------- */
-.main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;
-  background:linear-gradient(180deg,rgba(255,251,248,.42),rgba(255,251,248,.28))}
+/* ---------- 聊天主区：顶栏和输入栏锁死不动，只滚中间 ---------- */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;position:relative;
+  background:linear-gradient(180deg,rgba(255,251,248,.42),rgba(255,251,248,.26))}
 .chat-head{flex:none;display:flex;align-items:center;gap:12px;padding:12px 16px;
   border-bottom:1px solid rgba(255,255,255,.6);
   background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.34));
-  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3)}
+  -webkit-backdrop-filter:blur(16px) saturate(1.25);backdrop-filter:blur(16px) saturate(1.25)}
 .menu-btn{display:none}
-.head-avatar{position:relative;width:48px;height:48px;flex:none}
-.head-avatar img{width:48px;height:48px;border-radius:50%;object-fit:cover;
-  box-shadow:0 0 0 2px #fff,0 0 0 3px var(--rose-soft),0 6px 14px rgba(120,74,80,.2)}
-.head-avatar .online{position:absolute;right:0;bottom:2px;width:11px;height:11px;border-radius:50%;
-  background:#9db08a;border:2px solid #fff}
-.head-name{font-family:"Fraunces",serif;font-size:19px;color:#5d4246;line-height:1.15}
+.room-name-input{font-family:"Fraunces",serif;font-size:19px;color:#5d4246;border:0;outline:0;background:transparent;
+  width:220px;max-width:38vw}
+.room-name-input::placeholder{color:var(--ink-faint)}
 .head-status{font-size:12px;color:var(--ink-soft);margin-top:2px}
-.head-status i{font-style:normal;color:var(--rose-deep)}
-.model-pill{display:flex;align-items:center;gap:6px;height:36px;padding:0 6px 0 14px;border-radius:99px;font-size:13px}
-.model-pill select{border:0;background:transparent;outline:0;font-size:13px;max-width:110px}
+.head-status .ok{color:#7d8f6d}.head-status .no{color:var(--rose-deep)}
 .head-spacer{flex:1}
-.chat-scroll{flex:1;overflow-y:auto;padding:22px 18px 8px;scroll-behavior:smooth}
-.chat-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding-bottom:8px}
+.chat-scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:22px 18px 8px;scroll-behavior:smooth}
+.chat-inner{max-width:740px;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding-bottom:8px}
 .date-line{display:flex;align-items:center;gap:12px;color:var(--ink-faint);font-size:12px;letter-spacing:.22em}
-.date-line::before,.date-line::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(194,160,107,.55),transparent)}
-.hero{border-radius:26px;overflow:hidden;position:relative}
-.hero img{width:100%;height:172px;object-fit:cover;filter:saturate(.85) brightness(1.04)}
-.hero .hero-text{position:absolute;inset:auto 0 0 0;padding:34px 20px 14px;
-  background:linear-gradient(180deg,transparent,rgba(251,244,239,.94))}
-.hero .hero-text b{font-family:"Fraunces",serif;font-weight:600;font-size:19px;color:#5d4246;display:block}
-.hero .hero-text span{font-size:12.5px;color:var(--ink-soft)}
-.msg{display:flex;gap:10px;align-items:flex-start;animation:rise .35s cubic-bezier(.34,1.4,.64,1)}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.msg .avatar{width:38px;height:38px;flex:none;border-radius:50%;object-fit:cover;
-  box-shadow:0 0 0 2px #fff,0 4px 10px rgba(120,74,80,.18);margin-top:2px}
+.date-line::before,.date-line::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+.empty-chat{margin:9vh auto 0;text-align:center;max-width:420px}
+.empty-chat .orn{width:74px;margin:0 auto 14px;opacity:.7}
+.empty-chat b{font-family:"Fraunces",serif;font-weight:400;font-size:21px;color:#5d4246;display:block;margin-bottom:8px}
+.empty-chat p{font-size:13.5px;line-height:2;color:var(--ink-soft)}
+.empty-chat .go-set{margin-top:18px;height:44px;padding:0 22px;border-radius:99px;font-size:13.5px;letter-spacing:.1em}
+.msg{display:flex;gap:10px;align-items:flex-start;animation:fade .3s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
 .msg.me{flex-direction:row-reverse}
 .msg-body{min-width:0;max-width:78%}
 .msg-name{font-size:11.5px;letter-spacing:.18em;color:var(--ink-faint);margin:0 4px 5px}
 .msg.me .msg-name{text-align:right}
-.bubble{padding:12px 15px;border-radius:20px;font-size:var(--font-size);line-height:1.75;word-break:break-word}
+.bubble{padding:12px 15px;border-radius:20px;font-size:var(--font-size);line-height:1.75;word-break:break-word;white-space:pre-wrap}
 .bubble.ai{border-top-left-radius:6px;color:#4a3a3c}
-.bubble.ai p+p{margin-top:8px}
-.bubble.me{border-top-right-radius:6px;background:linear-gradient(160deg,#dcafb0,#cf9a9c);
-  color:#fff8f6;box-shadow:0 8px 18px rgba(168,106,112,.28),inset 0 1px 0 rgba(255,255,255,.45)}
-.bubble.me .bubble-img{box-shadow:none}
+.bubble.me{border-top-right-radius:6px;background:var(--bubble-me);color:#5d4246;
+  box-shadow:0 6px 16px rgba(168,106,112,.16),inset 0 1px 0 rgba(255,255,255,.55)}
 .bubble-img{width:100%;max-width:300px;border-radius:14px;margin-bottom:8px}
+.bubble.err{border:1px dashed rgba(168,106,112,.5);background:rgba(255,253,251,.7);color:var(--rose-deep);font-size:13.5px}
 .msg-actions{display:flex;gap:2px;margin:5px 2px 0;opacity:0;transition:opacity .2s}
 .msg:hover .msg-actions,.msg:focus-within .msg-actions{opacity:1}
 .msg-actions button{height:30px;padding:0 10px;border-radius:99px;font-size:12px;color:var(--ink-soft);
@@ -180,112 +158,98 @@ img{display:block}
 .typing i{width:7px;height:7px;border-radius:50%;background:var(--rose);animation:tp 1.1s infinite}
 .typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
 @keyframes tp{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:none;height:38px;padding:0 16px;border-radius:99px;font-size:13px;white-space:nowrap;
-  display:flex;align-items:center;gap:6px}
-</style>
-</head>
-<body>
-<style>
-/* ---------- 输入栏 ---------- */
+.stop-btn{height:34px;padding:0 16px;border-radius:99px;font-size:12.5px;align-self:center}
+
+/* ---------- 输入栏：锁死在底部 ---------- */
 .composer-wrap{flex:none;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px))}
 .composer{border-radius:26px;padding:8px 8px 8px 10px;display:flex;align-items:flex-end;gap:8px}
 .composer textarea{flex:1;min-width:0;border:0;outline:0;background:transparent;resize:none;
   font-size:var(--font-size);line-height:1.6;max-height:132px;padding:10px 4px}
 .composer textarea::placeholder{color:var(--ink-faint)}
 .send-btn{width:44px;height:44px;flex:none;border-radius:50%;display:grid;place-items:center;
-  background:linear-gradient(160deg,#c98a8f,#a86a70);color:#fff;
-  box-shadow:0 8px 16px rgba(168,106,112,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+  background:linear-gradient(160deg,#c9a0a2,#a86a70);color:#fff;
+  box-shadow:0 8px 16px rgba(168,106,112,.3),inset 0 1px 0 rgba(255,255,255,.5)}
 .send-btn:active{transform:scale(.92)}
 .send-btn:disabled{opacity:.45}
-.composer-hint{text-align:center;font-size:11px;color:var(--ink-faint);letter-spacing:.12em;padding:7px 0 0}
-
-/* ---------- 抽屉：装扮 / 设置 ---------- */
+.attach-preview{display:flex;gap:8px;padding:0 4px 8px}
+.attach-preview img{width:64px;height:64px;border-radius:14px;object-fit:cover}
+.attach-preview button{align-self:flex-start;color:var(--ink-faint);font-size:12px;padding:4px 8px}
+.composer-hint{text-align:center;font-size:11px;color:var(--ink-faint);letter-spacing:.1em;padding:7px 0 0}
+</style>
+</head>
+<body>
+<style>
+/* ---------- 设置抽屉 ---------- */
 .scrim{position:fixed;inset:0;background:rgba(74,58,60,.28);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
   opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
 .scrim.show{opacity:1;pointer-events:auto}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(380px,92vw);z-index:50;
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(390px,92vw);z-index:50;
   transform:translateX(105%);transition:transform .38s cubic-bezier(.32,.9,.35,1);
   display:flex;flex-direction:column;
-  background:linear-gradient(180deg,rgba(255,251,248,.92),rgba(250,238,234,.94));
-  -webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);
-  border-left:1px solid rgba(255,255,255,.8);box-shadow:-18px 0 44px rgba(96,58,64,.2)}
+  background:linear-gradient(180deg,rgba(255,251,248,.94),rgba(250,238,234,.96));
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  border-left:1px solid rgba(255,255,255,.8);box-shadow:-18px 0 44px rgba(96,58,64,.18)}
 .drawer.show{transform:none}
 .drawer-head{flex:none;display:flex;align-items:center;gap:10px;padding:18px 18px 12px}
-.drawer-head .d-photo{width:52px;height:52px;border-radius:16px;overflow:hidden;flex:none}
-.drawer-head .d-photo img{width:100%;height:100%;object-fit:cover}
-.drawer-head b{font-family:"Fraunces",serif;font-size:19px;color:#5d4246;display:block}
+.drawer-head b{font-family:"Fraunces",serif;font-weight:400;font-size:20px;color:#5d4246;display:block}
 .drawer-head span{font-size:12px;color:var(--ink-soft)}
-.drawer-body{flex:1;overflow-y:auto;padding:4px 18px 26px;display:flex;flex-direction:column;gap:20px}
+.drawer-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:4px 18px 26px;display:flex;flex-direction:column;gap:20px}
 .d-sec h3{font-size:11px;letter-spacing:.34em;color:var(--ink-faint);font-weight:500;margin-bottom:10px;
   display:flex;align-items:center;gap:8px}
-.d-sec h3::after{content:"";flex:1;height:1px;background:rgba(194,160,107,.4)}
+.d-sec h3::after{content:"";flex:1;height:1px;background:var(--line)}
 .d-card{border-radius:20px;padding:14px}
-.d-card .wall{border-radius:14px;overflow:hidden;position:relative;height:118px}
-.d-card .wall img{width:100%;height:100%;object-fit:cover}
-.d-card .wall span{position:absolute;left:10px;bottom:8px;font-size:11.5px;letter-spacing:.14em;color:#fff;
-  background:rgba(74,58,60,.45);padding:4px 10px;border-radius:99px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.06em}
+.field input[type=text],.field input[type=password],.field input[type=url],.field textarea{
+  width:100%;border:1px solid rgba(255,255,255,.95);background:rgba(255,255,255,.72);
+  border-radius:14px;padding:11px 13px;outline:0;font-size:14px;line-height:1.6;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:var(--rose)}
+.field small{display:block;font-size:11.5px;color:var(--ink-faint);margin-top:5px;line-height:1.7}
 .d-row{display:flex;align-items:center;gap:10px;padding:9px 0}
-.d-row+.d-row{border-top:1px solid rgba(184,110,121,.14)}
+.d-row+.d-row{border-top:1px solid rgba(168,106,112,.12)}
 .d-row label{flex:1;font-size:13.5px}
 .d-row small{display:block;font-size:11.5px;color:var(--ink-faint);margin-top:1px}
 .d-row input[type=color]{width:44px;height:32px;border:1px solid rgba(255,255,255,.9);border-radius:10px;background:#fff;padding:2px}
 .d-row input[type=range]{width:150px;accent-color:var(--rose-deep)}
 .d-row input[type=file]{display:none}
 .upload-btn{height:36px;padding:0 14px;border-radius:99px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
+.wall-mini{border-radius:14px;overflow:hidden;height:92px;position:relative;background:var(--paper-2);margin-bottom:10px}
+.wall-mini img{width:100%;height:100%;object-fit:cover}
+.wall-mini span{position:absolute;left:10px;bottom:8px;font-size:11.5px;letter-spacing:.12em;color:var(--ink-soft);
+  background:rgba(255,253,251,.85);padding:4px 10px;border-radius:99px}
 .avatar-row{display:flex;gap:12px}
 .avatar-edit{flex:1;text-align:center}
-.avatar-edit img{width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 8px;
-  box-shadow:0 0 0 2px #fff,0 0 0 3px var(--rose-soft)}
 .avatar-edit .upload-btn{width:100%;justify-content:center}
-.switch{position:relative;width:48px;height:28px;flex:none}
-.switch input{opacity:0;width:100%;height:100%;position:absolute;margin:0;cursor:pointer}
-.switch i{position:absolute;inset:0;border-radius:99px;background:#dcc7c7;transition:.2s;pointer-events:none}
-.switch i::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;
-  background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.18);transition:.2s}
-.switch input:checked+i{background:var(--rose-deep)}
-.switch input:checked+i::after{transform:translateX(20px)}
+.conn-status{font-size:12.5px;line-height:1.8;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.65);
+  color:var(--ink-soft);word-break:break-word}
+.conn-status.ok{color:#6d7f5e}.conn-status.bad{color:var(--rose-deep)}
 .d-actions{display:flex;gap:8px}
 .d-actions button{flex:1;height:44px;border-radius:99px;font-size:13px}
 .memory-item{display:flex;gap:8px;align-items:flex-start;padding:9px 0;font-size:13.5px;line-height:1.6}
-.memory-item+.memory-item{border-top:1px solid rgba(184,110,121,.14)}
+.memory-item+.memory-item{border-top:1px solid rgba(168,106,112,.12)}
 .memory-item button{flex:none;color:var(--ink-faint);font-size:12px;padding:2px 6px}
 .memory-add{display:flex;gap:8px;margin-top:8px}
 .memory-add input{flex:1;min-width:0;height:42px;border-radius:99px;border:1px solid rgba(255,255,255,.9);
   background:rgba(255,255,255,.7);padding:0 14px;outline:0;font-size:13.5px}
 .memory-add button{width:42px;height:42px;border-radius:50%;flex:none}
-
-/* ---------- 底部弹出条 / 提示 ---------- */
-.sheet{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);
-  z-index:60;width:min(430px,92vw);border-radius:24px;padding:8px;transition:transform .35s cubic-bezier(.32,.9,.35,1)}
-.sheet.show{transform:translate(-50%,0)}
-.sheet button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;border-radius:17px;font-size:14.5px}
-.sheet button:hover{background:rgba(255,255,255,.7)}
-.sheet button svg{flex:none;opacity:.75}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);
-  z-index:70;padding:11px 20px;border-radius:99px;font-size:13.5px;letter-spacing:.06em;color:#5d4246;
+  z-index:70;padding:11px 20px;border-radius:99px;font-size:13.5px;letter-spacing:.04em;color:#5d4246;
   opacity:0;pointer-events:none;transition:.25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .hidden{display:none!important}
 svg.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
 svg.ic.s{width:16px;height:16px}
-
-/* ---------- 液态玻璃折射滤镜 ---------- */
-.refract{filter:url(#glassRefract)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-
-/* ---------- 手机端 ---------- */
 @media (max-width:860px){
-  .app{padding:0;gap:0;max-width:none}
+  .app{padding:0;max-width:none}
   .frame{border-radius:0;box-shadow:none}
   .sidebar{position:absolute;inset:0 auto 0 0;z-index:30;width:min(320px,86vw);
     transform:translateX(-105%);transition:transform .34s cubic-bezier(.32,.9,.35,1);
-    box-shadow:18px 0 44px rgba(96,58,64,.2)}
+    box-shadow:18px 0 44px rgba(96,58,64,.18)}
   .sidebar.show{transform:none}
   .menu-btn{display:grid}
-  .model-pill select{max-width:74px}
   .head-status{display:none}
+  .room-name-input{width:150px}
   .msg-body{max-width:84%}
   .chat-scroll{padding:16px 12px 8px}
   .composer-wrap{padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px))}
@@ -297,157 +261,173 @@ svg.ic.s{width:16px;height:16px}
       <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="7" result="n"/>
       <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
-    <filter id="glassSoft" x="-8%" y="-8%" width="116%" height="116%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3" result="n"/>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="12"/>
-    </filter>
   </defs>
 </svg>
 </head>
 <body>
 <div class="wallpaper" aria-hidden="true">
-  <img id="wallImg" src="https://images.unsplash.com/photo-1494972308805-463bc619d34e?q=80&w=1800&auto=format&fit=crop" alt="">
-  <div class="paper-lines"></div>
-  <svg class="lace tl" viewBox="0 0 200 200" fill="none" stroke="#c2a06b" stroke-width="1" opacity=".7">
-    <path d="M10 190 C 40 120, 60 90, 100 70 S 170 30, 190 10 M 30 190 C 50 150, 80 130, 110 118 M 10 160 C 60 150, 110 130, 150 100"/>
-    <circle cx="100" cy="70" r="14"/><circle cx="118" cy="52" r="8"/><circle cx="82" cy="88" r="8"/>
-    <path d="M100 84 C 96 96, 104 96, 100 108 M 100 56 C 96 44, 104 44, 100 32"/>
-  </svg>
-  <svg class="lace br" viewBox="0 0 200 200" fill="none" stroke="#c2a06b" stroke-width="1" opacity=".7">
-    <path d="M10 190 C 40 120, 60 90, 100 70 S 170 30, 190 10 M 30 190 C 50 150, 80 130, 110 118 M 10 160 C 60 150, 110 130, 150 100"/>
-    <circle cx="100" cy="70" r="14"/><circle cx="118" cy="52" r="8"/><circle cx="82" cy="88" r="8"/>
+  <div class="paper"></div>
+  <img id="wallImg" alt="">
+  <svg class="lace" viewBox="0 0 120 40" fill="none" stroke="#c2a06b" stroke-width="1">
+    <path d="M4 20 C 22 8, 38 8, 60 20 S 98 32, 116 20"/><circle cx="60" cy="20" r="2.5" fill="#c2a06b" stroke="none"/>
+    <path d="M20 28 C 40 22, 80 22, 100 28"/>
   </svg>
 </div>
 
 <div class="app">
   <div class="frame glass" id="frame">
-    <!-- 左栏 -->
-    <aside class="sidebar" id="sidebar" aria-label="对话列表">
-      <div class="side-cover">
-        <img src="https://images.unsplash.com/photo-1518895949257-7621c3c786d7?q=80&w=900&auto=format&fit=crop" alt="玫瑰">
-        <div class="cover-title"><div class="en">Maison Rose</div><div class="cn">小 家 · 玫瑰屋</div></div>
-        <svg class="cover-flourish" viewBox="0 0 64 24" fill="none" stroke="#fff" stroke-width="1.2" opacity=".9">
-          <path d="M2 12 C 12 4, 22 4, 32 12 S 52 20, 62 12"/><circle cx="32" cy="12" r="2.5" fill="#fff" stroke="none"/>
-        </svg>
-      </div>
+    <aside class="sidebar" id="sidebar" aria-label="房间列表">
+      <div class="side-head"><span class="t">Letters</span><span class="n">对 话</span></div>
       <div class="side-body">
         <div class="search-row">
           <label class="search-box glass">
             <svg class="ic s" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            <input id="searchInput" type="search" placeholder="搜对话、搜一句话" aria-label="搜索对话">
+            <input id="searchInput" type="search" placeholder="搜房间、搜一句话" aria-label="搜索">
           </label>
           <button class="icon-btn glass glass-btn" id="closeSideBtn" aria-label="收起边栏">
             <svg class="ic" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
         </div>
-        <button class="new-chat glass glass-btn" id="newChatBtn">
-          <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新对话
+        <button class="new-room glass glass-btn" id="newRoomBtn">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建房间
         </button>
-        <div class="personas" id="personaList" role="listbox" aria-label="AI 房间"></div>
-        <div class="side-label">对话记录</div>
-        <div class="history" id="historyList"></div>
+        <div class="side-label">房 间</div>
+        <div class="room-list" id="roomList"></div>
         <div class="side-foot">
-          <button class="glass glass-btn" id="memoryBtn">
-            <svg class="ic s" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>记忆本
+          <button class="glass glass-btn" id="settingsBtn">
+            <svg class="ic s" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>设置
           </button>
-          <button class="glass glass-btn" id="dressBtn">
-            <svg class="ic s" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>装扮
+          <button class="glass glass-btn" id="exportAllBtn">
+            <svg class="ic s" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>导出全部
           </button>
         </div>
       </div>
     </aside>
 
-    <!-- 聊天主区 -->
     <main class="main">
       <header class="chat-head">
         <button class="icon-btn glass glass-btn menu-btn" id="menuBtn" aria-label="打开边栏">
           <svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <div class="head-avatar"><img id="headAvatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" alt="头像"><span class="online"></span></div>
+        <button class="letter-av md" id="headAvatarBtn" aria-label="换房间头像"></button>
         <div style="min-width:0">
-          <div class="head-name" id="headName">小梦</div>
-          <div class="head-status"><i>在线</i> · <span id="headDesc">在玫瑰屋里等你</span></div>
+          <input class="room-name-input" id="roomNameInput" value="" placeholder="房间名" aria-label="房间名">
+          <div class="head-status" id="headStatus"></div>
         </div>
         <div class="head-spacer"></div>
-        <label class="model-pill glass">
-          <svg class="ic s" viewBox="0 0 24 24"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8z"/></svg>
-          <select id="modelSel" aria-label="选择模型">
-            <option value="standard">标准</option><option value="long">长回复</option><option value="short">短回复</option>
-          </select>
-        </label>
-        <button class="icon-btn glass glass-btn" id="headSearchBtn" aria-label="对话内搜索">
-          <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <button class="icon-btn glass glass-btn" id="exportBtn" aria-label="导出当前对话">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         </button>
-        <button class="icon-btn glass glass-btn" id="headDressBtn" aria-label="装扮">
+        <button class="icon-btn glass glass-btn" id="clearBtn" aria-label="清空当前对话">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+        <button class="icon-btn glass glass-btn" id="headSettingsBtn" aria-label="设置">
           <svg class="ic" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
         </button>
       </header>
 
       <div class="chat-scroll" id="chatScroll">
         <div class="chat-inner" id="chatInner">
-          <div class="date-line">今天 · 玫瑰纸的第一页</div>
-          <div class="hero">
-            <img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?q=80&w=1200&auto=format&fit=crop" alt="玫瑰园">
-            <div class="hero-text"><b>玫瑰屋开门了</b><span>三个房间，三位 AI。点左边的名字换房间，对话各自记着。</span></div>
-          </div>
+          <div class="date-line" id="dateLine"></div>
           <div id="msgList" style="display:flex;flex-direction:column;gap:18px"></div>
-          <div class="chips" id="chips"></div>
+          <div id="emptyChat" class="empty-chat">
+            <svg class="orn" viewBox="0 0 74 24" fill="none" stroke="#c2a06b" stroke-width="1">
+              <path d="M2 12 C 14 4, 26 4, 37 12 S 60 20, 72 12"/><circle cx="37" cy="12" r="2.5" fill="#c2a06b" stroke="none"/>
+            </svg>
+            <b>还没有消息</b>
+            <p>这里什么都没编。先去设置里填好接口、密钥和模型，<br>再发第一句，AI 才会真的回你。</p>
+            <button class="go-set glass glass-btn" id="emptyGoSet">去设置接入</button>
+          </div>
         </div>
       </div>
 
       <div class="composer-wrap">
+        <div class="attach-preview hidden" id="attachPreview">
+          <img id="attachImg" alt="要发送的图片">
+          <button id="attachRemove">去掉</button>
+        </div>
         <div class="composer glass" id="composer">
-          <button class="icon-btn glass-btn" id="plusBtn" aria-label="更多" style="width:40px;height:40px">
-            <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          <button class="icon-btn glass-btn" id="attachBtn" aria-label="发图片" style="width:40px;height:40px">
+            <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>
           </button>
-          <textarea id="input" rows="1" placeholder="给小梦写点什么…" aria-label="输入消息"></textarea>
-          <button class="icon-btn glass-btn" id="micBtn" aria-label="语音输入" style="width:40px;height:40px">
-            <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
-          </button>
+          <textarea id="input" rows="1" placeholder="写点什么…" aria-label="输入消息"></textarea>
           <button class="send-btn" id="sendBtn" aria-label="发送">
             <svg class="ic" viewBox="0 0 24 24" style="stroke:#fff"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
           </button>
         </div>
-        <div class="composer-hint">按 回车发送 · Shift + 回车换行 · 对话存在这台设备上</div>
+        <div class="composer-hint" id="composerHint">回车发送 · Shift + 回车换行 · 对话和密钥只存在这台设备上</div>
       </div>
     </main>
   </div>
 </div>
 
-<!-- 装扮抽屉：只有调节器，没有预设主题包 -->
+<!-- 设置抽屉：接入、房间、头像、壁纸、颜色、玻璃、记忆、数据 -->
 <div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" aria-label="装扮与设置">
+<aside class="drawer" id="drawer" aria-label="设置">
   <div class="drawer-head">
-    <div class="d-photo"><img id="drawerPhoto" src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=300&auto=format&fit=crop" alt=""></div>
-    <div style="flex:1;min-width:0"><b>装扮</b><span>只调这一套默认主题 · 改完即存</span></div>
-    <button class="icon-btn glass glass-btn" id="drawerClose" aria-label="关闭装扮">
+    <div style="flex:1;min-width:0"><b>设置</b><span>接好接口就能真聊 · 改完即存</span></div>
+    <button class="icon-btn glass glass-btn" id="drawerClose" aria-label="关闭设置">
       <svg class="ic" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="drawer-body">
-    <section class="d-sec"><h3>壁 纸</h3>
+    <section class="d-sec"><h3>接 入</h3>
       <div class="d-card glass">
-        <div class="wall"><img id="wallPreview" src="https://images.unsplash.com/photo-1494972308805-463bc619d34e?q=80&w=900&auto=format&fit=crop" alt="当前壁纸"><span>当前壁纸 · 玫瑰旧纸</span></div>
-        <div class="d-row"><label>自己传一张<small>传上去就换掉这张底，存在本机</small></label>
-          <label class="upload-btn glass glass-btn" for="wallFile">上传</label></div>
-        <div class="d-row"><label>纸面亮度<small>太亮字会飘，太暗玫瑰会沉</small></label>
-          <input type="range" id="wallBright" min="70" max="115" value="100"></div>
-        <div class="d-row"><label>壁纸柔化<small>把玫瑰再洗淡一点</small></label>
-          <input type="range" id="wallFade" min="0" max="70" value="18"></div>
+        <div class="field"><label>接口地址</label>
+          <input type="url" id="baseUrl" placeholder="https://api.openai.com/v1" autocomplete="off">
+          <small>兼容 OpenAI 格式的接口都能填，结尾不要带斜杠。</small></div>
+        <div class="field"><label>密钥</label>
+          <input type="password" id="apiKey" placeholder="粘贴你的 key" autocomplete="off">
+          <small>只存在这台浏览器的本地存储里，不会发到别处。</small></div>
+        <div class="field"><label>模型</label>
+          <input type="text" id="modelName" placeholder="例如 gpt-4o-mini" autocomplete="off">
+          <small>按你接口那边的模型名照实填。</small></div>
+        <div class="field"><label>温度</label>
+          <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7" style="width:100%;accent-color:var(--rose-deep)">
+          <small>数值：<span id="tempVal">0.7</span>，越低越稳，越高越发散。</small></div>
+        <div class="d-actions" style="margin-top:4px">
+          <button class="glass glass-btn" id="testConnBtn">测试连接</button>
+        </div>
+        <div class="conn-status" id="connStatus" style="margin-top:10px">还没测过。填好上面三项再点测试。</div>
+      </div>
+    </section>
+    <section class="d-sec"><h3>当 前 房 间</h3>
+      <div class="d-card glass">
+        <div class="field"><label>房间提示词</label>
+          <textarea id="roomPrompt" rows="3" placeholder="这个房间的 AI 是什么性格、怎么说话，写在这里。留空就是默认。"></textarea>
+          <small>每次发送都会带上这段话，再加上下面记忆本里的内容。</small></div>
       </div>
     </section>
     <section class="d-sec"><h3>头 像</h3>
       <div class="d-card glass"><div class="avatar-row">
-        <div class="avatar-edit"><img id="myAvatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop" alt="我的头像"><label class="upload-btn glass glass-btn" for="myAvatarFile">换我的头像</label></div>
-        <div class="avatar-edit"><img id="aiAvatarEdit" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" alt="AI 头像"><label class="upload-btn glass glass-btn" for="aiAvatarFile">换 TA 的头像</label></div>
-      </div></div>
+        <div class="avatar-edit"><div class="letter-av lg" id="myAvatarBox" style="margin:0 auto 8px"></div>
+          <label class="upload-btn glass glass-btn" for="myAvatarFile">传我的头像</label>
+          <button class="upload-btn glass glass-btn" id="myAvatarReset" style="margin-top:6px;width:100%;justify-content:center">恢复字母</button></div>
+        <div class="avatar-edit"><div class="letter-av lg" id="roomAvatarBox" style="margin:0 auto 8px"></div>
+          <label class="upload-btn glass glass-btn" for="roomAvatarFile">传房间头像</label>
+          <button class="upload-btn glass glass-btn" id="roomAvatarReset" style="margin-top:6px;width:100%;justify-content:center">恢复字母</button></div>
+      </div>
+      <div class="field" style="margin-top:12px;margin-bottom:0"><label>我的名字</label>
+        <input type="text" id="myName" placeholder="我" autocomplete="off">
+        <small>字母头像取名字里的第一个字母。</small></div>
+      </div>
+    </section>
+    <section class="d-sec"><h3>壁 纸</h3>
+      <div class="d-card glass">
+        <div class="wall-mini"><img id="wallPreview" alt=""><span id="wallPreviewLabel">默认 · 淡纸纹，没有照片</span></div>
+        <div class="d-row"><label>自己传一张<small>传上去就换掉淡纸纹，存在本机</small></label>
+          <label class="upload-btn glass glass-btn" for="wallFile">上传</label></div>
+        <div class="d-row"><label>恢复默认</label><button class="upload-btn glass glass-btn" id="wallReset">清除壁纸</button></div>
+        <div class="d-row"><label>纸面亮度</label><input type="range" id="wallBright" min="70" max="115" value="100"></div>
+        <div class="d-row"><label>壁纸柔化</label><input type="range" id="wallFade" min="0" max="70" value="0"></div>
+      </div>
     </section>
     <section class="d-sec"><h3>颜 色</h3>
       <div class="d-card glass">
-        <div class="d-row"><label>我的气泡<small>现在是豆沙粉</small></label><input type="color" id="meColor" value="#cf9a9c"></div>
-        <div class="d-row"><label>强调色<small>名字、按钮、细线都跟它走</small></label><input type="color" id="accentColor" value="#b76e79"></div>
-        <div class="d-row"><label>文字颜色<small>深一点才压得住纸纹</small></label><input type="color" id="inkColor" value="#4a3a3c"></div>
-        <div class="d-row"><label>字号<small>全文跟着变</small></label><input type="range" id="fontSize" min="13" max="17" value="15"></div>
+        <div class="d-row"><label>我的气泡</label><input type="color" id="meColor" value="#ecd6d3"></div>
+        <div class="d-row"><label>强调色<small>按钮、细线、字母都跟它走</small></label><input type="color" id="accentColor" value="#a86a70"></div>
+        <div class="d-row"><label>文字颜色</label><input type="color" id="inkColor" value="#4a3a3c"></div>
+        <div class="d-row"><label>字号</label><input type="range" id="fontSize" min="13" max="17" value="15"></div>
       </div>
     </section>
     <section class="d-sec"><h3>玻 璃 工 坊</h3>
@@ -457,252 +437,318 @@ svg.ic.s{width:16px;height:16px}
         <div class="d-row"><label>高光 <small id="shineVal">13</small></label><input type="range" id="shine" min="0" max="26" value="13"></div>
         <div class="d-row"><label>模糊 <small id="blurVal">14</small></label><input type="range" id="blur" min="0" max="28" value="14"></div>
         <div class="d-row"><label>透度 <small id="alphaVal">58</small></label><input type="range" id="alpha" min="28" max="88" value="58"></div>
-        <div class="d-row"><label>流式回复</label><span class="switch"><input type="checkbox" id="streamToggle" checked><i></i></span></div>
-        <div class="d-row"><label>发送后收起边栏<small>手机上默认开</small></label><span class="switch"><input type="checkbox" id="autoCloseToggle" checked><i></i></span></div>
       </div>
     </section>
     <section class="d-sec"><h3>记 忆 本</h3>
       <div class="d-card glass">
         <div id="memoryList"></div>
         <div class="memory-add"><input id="memoryInput" placeholder="写一句要记住的事…" aria-label="添加记忆"><button class="glass glass-btn" id="memoryAdd" aria-label="添加记忆"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
-        <div style="font-size:11.5px;color:var(--ink-faint);margin-top:8px">聊天里写「记住：……」也会自动记进来。</div>
+        <div style="font-size:11.5px;color:var(--ink-faint);margin-top:8px">每次发送时，这些话会放进系统提示里给 AI。</div>
       </div>
     </section>
-    <div class="d-actions">
-      <button class="glass glass-btn" id="exportBtn">导出对话</button>
-      <button class="glass glass-btn" id="resetBtn">恢复默认</button>
-    </div>
+    <section class="d-sec"><h3>数 据</h3>
+      <div class="d-card glass">
+        <div class="d-actions"><button class="glass glass-btn" id="exportJsonBtn">导出全部备份</button></div>
+        <div class="d-actions" style="margin-top:8px"><button class="glass glass-btn" id="wipeBtn">清空全部数据</button></div>
+        <div style="font-size:11.5px;color:var(--ink-faint);margin-top:10px;line-height:1.8">清空会删掉所有房间、对话、记忆和设置，壁纸和头像一起清掉，恢复成刚打开的样子。</div>
+      </div>
+    </section>
   </div>
 </aside>
 
-<!-- 加号弹出条 -->
-<div class="sheet glass" id="sheet" role="menu">
-  <button id="sendImageBtn"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>发图片</button>
-  <button id="sendFileBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>发文件</button>
-  <button id="readAloudBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></svg>朗读上一条回复</button>
-  <button id="clearBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>清空当前对话</button>
-</div>
-
 <div class="toast glass" id="toast" role="status"></div>
-<input type="file" id="wallFile" accept="image/*">
-<input type="file" id="myAvatarFile" accept="image/*">
-<input type="file" id="aiAvatarFile" accept="image/*">
-<input type="file" id="imgFile" accept="image/*">
-<input type="file" id="docFile" accept="*/*">
+<input type="file" id="wallFile" accept="image/*" class="hidden">
+<input type="file" id="myAvatarFile" accept="image/*" class="hidden">
+<input type="file" id="roomAvatarFile" accept="image/*" class="hidden">
+<input type="file" id="imgFile" accept="image/*" class="hidden">
 
 <script>
 "use strict";
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const U=id=>`https://images.unsplash.com/${id}?q=80&w=200&auto=format&fit=crop`;
-const UW=id=>`https://images.unsplash.com/${id}?q=80&w=1200&auto=format&fit=crop`;
-
-/* 三个房间：头像与封面都是真照片，点名字换房间，对话各自存着 */
-const PERSONAS=[
- {id:"meng",name:"小梦",desc:"在玫瑰屋里等你",avatar:U("photo-1544005313-94ddf0286df2"),cover:UW("photo-1518895949257-7621c3c786d7"),
-  hello:"我在呢。玫瑰纸刚换过，字还带着昨天的墨香，想聊什么都行，慢慢说。",
-  replies:["这句我收下了。先记在玫瑰纸的边上，等你下次翻回来，它还在。","嗯，我在听。你这句里藏着后半句，我先不戳破，等你自己说出来。","好问题。按我的想法是先把小的那件做踏实，大的那件自然就顺了，你觉得呢？","这个我替你记住了，不用你再说第二遍。"]},
- {id:"mimi",name:"咪咪",desc:"刚晒完太阳回来",avatar:U("photo-1438761681033-6461ffad8d80"),cover:UW("photo-1490750967868-88aa4486c946"),
-  hello:"回来啦，太阳晒得我懒洋洋的。你先说，我听着，困了就靠着我。",
-  replies:["这个我喜欢，留着，晚上再慢慢想。","你说得对一半，另一半我替你补上，好不好？","先喝口水，慢慢讲，我不催你。","记下来了，等你想起来问我，我一句不差还给你。"]},
- {id:"luoluo",name:"洛洛",desc:"在花园里摘玫瑰",avatar:U("photo-1534528741775-53994a69daeb"),cover:UW("photo-1522383225653-ed111181a951"),
-  hello:"花园里的玫瑰开得正好，我摘了一支放在你桌上。想聊什么？",
-  replies:["这支玫瑰送你，话慢慢说，花不会谢。","我把这句夹进书里了，书签就是那支玫瑰。","你这个想法有光，我帮你把它再擦亮一点。","好，我记在花园的小木牌上了，风吹不走。"]}
-];
-const CHIPS=["帮我写一首小诗","今天适合做什么","记住：我喜欢豆沙粉","讲一个玫瑰屋的故事"];
-const MY_AVATAR=U("photo-1494790108377-be9c29b29330");
-
-let state={persona:"meng",model:"standard",stream:true,autoClose:true,
-  chats:{},memories:["她喜欢豆沙粉，不喜欢太深的颜色。","玫瑰纸是默认壁纸，换壁纸要她自己传。"],
-  settings:{me:"#cf9a9c",accent:"#b76e79",ink:"#4a3a3c",fontSize:15,refract:26,edge:25,shine:13,blur:14,alpha:58,wallBright:100,wallFade:18}};
-try{const s=JSON.parse(localStorage.getItem("rose-chat-v1")||"null"); if(s&&s.chats) state={...state,...s,settings:{...state.settings,...(s.settings||{})}};}catch(e){}
-function save(){try{localStorage.setItem("rose-chat-v1",JSON.stringify(state));}catch(e){}}
-const cur=()=>PERSONAS.find(p=>p.id===state.persona);
-function chatOf(id){if(!state.chats[id]) state.chats[id]=[{role:"ai",text:PERSONAS.find(p=>p.id===id).hello,time:Date.now()}]; return state.chats[id];}
-const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const fmtTime=t=>new Date(t).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const letterOf=name=>{const m=String(name||"").match(/[A-Za-z]/);return m?m[0].toUpperCase():(String(name||"").trim()[0]||"A");};
 let toastTimer=null;
-function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200);}
-</script>
-<script>
-/* 渲染：左栏房间 + 历史 + 消息 */
-function renderPersonas(){
-  $("#personaList").innerHTML=PERSONAS.map(p=>`
-   <button class="persona glass ${p.id===state.persona?"active":""}" data-id="${p.id}" role="option" aria-selected="${p.id===state.persona}">
-     <span class="p-photo"><img src="${p.avatar}" alt="${p.name}的照片"></span>
-     <span style="min-width:0"><span class="p-name">${p.name}</span><span class="p-desc" style="display:block">${p.desc}</span></span>
-     <span class="p-dot"></span></button>`).join("");
-  $$("#personaList .persona").forEach(b=>b.onclick=()=>{state.persona=b.dataset.id;save();renderAll();toast("换到"+cur().name+"的房间了");});
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* 状态：全部存在本机 localStorage。没有预设对话、预设人设、预设记忆。 */
+const KEY="letters-chat-v1";
+let state={rooms:[],currentId:null,myName:"我",myAvatar:null,wallpaper:null,
+  settings:{baseUrl:"",apiKey:"",model:"",temp:0.7,me:"#ecd6d3",accent:"#a86a70",ink:"#4a3a3c",
+  fontSize:15,refract:26,edge:25,shine:13,blur:14,alpha:58,wallBright:100,wallFade:0},
+  memories:[]};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&Array.isArray(s.rooms))state={...state,...s,settings:{...state.settings,...(s.settings||{})}};}catch(e){}
+if(!state.rooms.length){const r={id:uid(),name:"房间 A",avatarImg:null,systemPrompt:"",messages:[]};state.rooms=[r];state.currentId=r.id;}
+if(!state.rooms.find(r=>r.id===state.currentId))state.currentId=state.rooms[0].id;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){toast("存不下了，图片可能太大了");}}
+const cur=()=>state.rooms.find(r=>r.id===state.currentId)||state.rooms[0];
+const configured=()=>state.settings.baseUrl.trim()&&state.settings.apiKey.trim()&&state.settings.model.trim();
+
+function avatarHTML(img,name,cls){
+  if(img)return `<span class="letter-av ${cls}"><img src="${img}" alt=""></span>`;
+  return `<span class="letter-av ${cls}">${esc(letterOf(name))}</span>`;
 }
-function renderHistory(){
+function renderRooms(){
   const q=($("#searchInput").value||"").trim();
-  const items=PERSONAS.map(p=>{const c=chatOf(p.id);const last=c[c.length-1];return {p,last};})
-    .filter(({p,last})=>!q||p.name.includes(q)||last.text.includes(q));
-  $("#historyList").innerHTML=items.map(({p,last})=>`
-   <button class="hist-item ${p.id===state.persona?"active":""}" data-id="${p.id}">
-     <img src="${p.avatar}" alt=""><span style="min-width:0"><span class="h-t" style="display:block">${p.name} · ${esc(last.text.slice(0,14))||"新对话"}</span>
-     <span class="h-s" style="display:block">${fmtTime(last.time)}</span></span></button>`).join("")
-    ||`<div style="padding:12px;font-size:13px;color:var(--ink-faint)">没搜到，换个词试试。</div>`;
-  $$("#historyList .hist-item").forEach(b=>b.onclick=()=>{state.persona=b.dataset.id;save();renderAll();closeSidebar();});
+  const list=state.rooms.filter(r=>!q||r.name.includes(q)||r.messages.some(m=>(m.content||"").includes(q)));
+  $("#roomList").innerHTML=list.map(r=>{const last=r.messages[r.messages.length-1];
+    return `<div class="room-item ${r.id===state.currentId?"active":""}" data-id="${r.id}" role="button" tabindex="0">
+      ${avatarHTML(r.avatarImg,r.name,"sm")}
+      <span style="min-width:0;flex:1"><span class="r-name" style="display:block">${esc(r.name)}</span>
+      <span class="r-snip" style="display:block">${last?esc((last.content||"").slice(0,16)):"还没有消息"}</span></span>
+      <button class="r-x" data-del="${r.id}" aria-label="删除房间">×</button></div>`;}).join("")
+    ||`<div class="empty-note">没有房间了。<br>点上面「新建房间」开一个。</div>`;
+  $$("#roomList .room-item").forEach(el=>{
+    el.onclick=e=>{if(e.target.closest("[data-del]"))return;state.currentId=el.dataset.id;save();renderAll();closeSidebar();};
+    el.onkeydown=e=>{if(e.key==="Enter"){state.currentId=el.dataset.id;save();renderAll();closeSidebar();}};
+  });
+  $$("#roomList [data-del]").forEach(b=>b.onclick=e=>{e.stopPropagation();
+    if(state.rooms.length<=1){toast("只剩这一个房间了，删不掉");return;}
+    if(!confirm("删掉这个房间和里面的对话？"))return;
+    state.rooms=state.rooms.filter(r=>r.id!==b.dataset.del);
+    if(state.currentId===b.dataset.del)state.currentId=state.rooms[0].id;
+    save();renderAll();});
 }
 function msgHTML(m,i){
-  const p=cur();
-  if(m.role==="me") return `<div class="msg me"><img class="avatar" id="meAv-${i}" src="${state.myAvatar||MY_AVATAR}" alt="我的头像">
-    <div class="msg-body"><div class="msg-name">我</div><div class="bubble me">${m.img?`<img class="bubble-img" src="${m.img}" alt="发送的图片">`:""}${esc(m.text).replace(/\n/g,"<br>")}</div>
+  if(m.role==="me")return `<div class="msg me">${avatarHTML(state.myAvatar,state.myName,"sm")}
+    <div class="msg-body"><div class="msg-name">${esc(state.myName||"我")}</div>
+    <div class="bubble me">${m.img?`<img class="bubble-img" src="${m.img}" alt="发送的图片">`:""}${esc(m.content)}</div>
     <div class="msg-actions"><button data-act="copy" data-i="${i}">复制</button><button data-act="del" data-i="${i}">删除</button></div>
-    <div class="msg-time">${fmtTime(m.time)}${m.file?" · "+esc(m.file):""}</div></div></div>`;
-  return `<div class="msg"><img class="avatar" src="${p.avatar}" alt="${p.name}的头像">
-    <div class="msg-body"><div class="msg-name">${p.name}</div><div class="bubble ai glass">${esc(m.text).replace(/\n/g,"</p><p>")}</div>
-    <div class="msg-actions"><button data-act="copy" data-i="${i}">复制</button><button data-act="regen" data-i="${i}">重新生成</button><button data-act="read" data-i="${i}">朗读</button><button data-act="del" data-i="${i}">删除</button></div>
+    <div class="msg-time">${fmtTime(m.time)}</div></div></div>`;
+  if(m.role==="error")return `<div class="msg">${avatarHTML(cur().avatarImg,cur().name,"sm")}
+    <div class="msg-body"><div class="msg-name">${esc(cur().name)}</div>
+    <div class="bubble err">${esc(m.content)}</div>
+    <div class="msg-actions"><button data-act="del" data-i="${i}">删除</button></div>
+    <div class="msg-time">${fmtTime(m.time)}</div></div></div>`;
+  return `<div class="msg">${avatarHTML(cur().avatarImg,cur().name,"sm")}
+    <div class="msg-body"><div class="msg-name">${esc(cur().name)}</div>
+    <div class="bubble ai glass">${esc(m.content)}</div>
+    <div class="msg-actions"><button data-act="copy" data-i="${i}">复制</button><button data-act="regen" data-i="${i}">重新生成</button><button data-act="del" data-i="${i}">删除</button></div>
     <div class="msg-time">${fmtTime(m.time)}</div></div></div>`;
 }
 function renderMsgs(){
-  const list=chatOf(state.persona);
+  const list=cur().messages;
   $("#msgList").innerHTML=list.map(msgHTML).join("");
+  $("#emptyChat").style.display=list.length?"none":"";
   $$("#msgList [data-act]").forEach(b=>b.onclick=()=>{
-    const i=+b.dataset.i, m=chatOf(state.persona)[i], act=b.dataset.act;
-    if(act==="copy"){navigator.clipboard&&navigator.clipboard.writeText(m.text).then(()=>toast("复制好了")); }
-    if(act==="del"){chatOf(state.persona).splice(i,1);save();renderMsgs();renderHistory();}
-    if(act==="read"){speak(m.text);}
-    if(act==="regen"){regen(i);}
+    const i=+b.dataset.i,m=cur().messages[i],act=b.dataset.act;
+    if(act==="copy"&&navigator.clipboard)navigator.clipboard.writeText(m.content||"").then(()=>toast("复制好了"));
+    if(act==="del"){cur().messages.splice(i,1);save();renderMsgs();renderRooms();}
+    if(act==="regen")regenerate();
   });
   requestAnimationFrame(()=>{const s=$("#chatScroll");s.scrollTop=s.scrollHeight;});
 }
-function renderChips(){
-  $("#chips").innerHTML=CHIPS.map(c=>`<button class="chip glass glass-btn">${c}</button>`).join("");
-  $$("#chips .chip").forEach(b=>b.onclick=()=>{send(b.textContent);});
+function renderHead(){
+  const r=cur();
+  $("#roomNameInput").value=r.name;
+  $("#headAvatarBtn").innerHTML=r.avatarImg?`<img src="${r.avatarImg}" alt="">`:esc(letterOf(r.name));
+  const st=$("#headStatus");
+  st.innerHTML=configured()
+    ?`<span class="ok">已接入</span> · ${esc(state.settings.model)}`
+    :`<span class="no">未接入</span> · 去设置里填接口、密钥和模型`;
+  $("#roomPrompt").value=r.systemPrompt||"";
+  $("#roomAvatarBox").innerHTML=r.avatarImg?`<img src="${r.avatarImg}" alt="">`:esc(letterOf(r.name));
+  $("#myAvatarBox").innerHTML=state.myAvatar?`<img src="${state.myAvatar}" alt="">`:esc(letterOf(state.myName||"我"));
 }
 function renderMemories(){
-  $("#memoryList").innerHTML=state.memories.map((m,i)=>`<div class="memory-item"><span style="flex:1">${esc(m)}</span><button data-i="${i}">删除</button></div>`).join("")||`<div style="padding:8px 0;font-size:13px;color:var(--ink-faint)">还空着，写一句吧。</div>`;
+  $("#memoryList").innerHTML=state.memories.map((m,i)=>`<div class="memory-item"><span style="flex:1">${esc(m)}</span><button data-i="${i}">删除</button></div>`).join("")
+    ||`<div style="padding:8px 0;font-size:13px;color:var(--ink-faint)">还空着，写一句吧。</div>`;
   $$("#memoryList button").forEach(b=>b.onclick=()=>{state.memories.splice(+b.dataset.i,1);save();renderMemories();});
 }
-function renderHead(){
-  const p=cur();
-  $("#headAvatar").src=p.avatar; $("#headName").textContent=p.name; $("#headDesc").textContent=p.desc;
-  $("#input").placeholder="给"+p.name+"写点什么…";
-  $("#aiAvatarEdit").src=p.avatar;
-  $("#drawerPhoto").src=p.cover;
+function renderAll(){renderRooms();renderMsgs();renderHead();renderMemories();}
+</script>
+<script>
+/* ---------- 真聊天：OpenAI 兼容接口，流式回包；没配好就不发、不编 ---------- */
+let aborter=null, attachImg=null;
+function apiMessages(){
+  const sys=[];
+  if(cur().systemPrompt.trim())sys.push(cur().systemPrompt.trim());
+  if(state.memories.length)sys.push("记住这些事：\n"+state.memories.map(m=>"- "+m).join("\n"));
+  const out=sys.length?[{role:"system",content:sys.join("\n\n")}]:[];
+  for(const m of cur().messages){
+    if(m.role==="error")continue;
+    if(m.role==="me"&&m.img)out.push({role:"user",content:[{type:"text",text:m.content||"这张图里有什么？"},
+      {type:"image_url",image_url:{url:m.img}}]});
+    else out.push({role:m.role,content:m.content});
+  }
+  return out;
 }
-function renderAll(){renderPersonas();renderHistory();renderMsgs();renderChips();renderMemories();renderHead();}
-
-/* 发送 + 流式回复（演示回复在本地生成，接真实模型时把 replyFor 换成接口调用） */
-let replyTimer=null;
-function replyFor(text){
-  const p=cur();
-  if(/记住[:：]/.test(text)) return "记下了，已经放进记忆本里了。";
-  if(/诗|小诗/.test(text)) return "玫瑰纸上落了一首小诗：\n\n粉是旧的粉，香是新的香。\n你来的时候，纸上的字都醒了。\n我把想你的那句，藏在玫瑰的第二层花瓣里。";
-  if(/你好|在吗|在么/.test(text)) return "在呢，一直在。你这句我等到了，说吧，我听着。";
-  const pool=p.replies; return pool[Math.floor(Math.random()*pool.length)];
-}
-function speak(text){
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="zh-CN";u.rate=.95;speechSynthesis.speak(u);toast("正在朗读");}catch(e){toast("这台设备不支持朗读");}
-}
-function regen(i){
-  const list=chatOf(state.persona); if(list[i].role!=="ai") return;
-  list[i]={role:"ai",text:replyFor("换一个说法"),time:Date.now()}; save(); renderMsgs(); renderHistory();
-}
-function send(text){
-  text=(text??$("#input").value).trim(); if(!text) return;
-  const list=chatOf(state.persona);
-  list.push({role:"me",text,time:Date.now()});
-  if(/^记住[:：]/.test(text)){const mem=text.replace(/^记住[:：]/,"").trim(); if(mem&&!state.memories.includes(mem)){state.memories.push(mem);renderMemories();}}
-  $("#input").value=""; autoGrow(); save(); renderMsgs(); renderHistory(); closeSidebarIfMobile();
-  const aiText=replyFor(text);
+function pushError(text){cur().messages.push({role:"error",content:text,time:Date.now()});save();renderMsgs();renderRooms();}
+async function callAI(){
+  const s=state.settings;
+  const base=s.baseUrl.trim().replace(/\/+$/,"");
+  aborter=new AbortController();
   const typing=document.createElement("div");
-  typing.className="msg"; typing.innerHTML=`<img class="avatar" src="${cur().avatar}" alt=""><div class="msg-body"><div class="msg-name">${cur().name}</div><div class="bubble ai glass typing"><i></i><i></i><i></i></div></div>`;
+  typing.className="msg"; typing.id="typingRow";
+  typing.innerHTML=`${avatarHTML(cur().avatarImg,cur().name,"sm")}<div class="msg-body"><div class="msg-name">${esc(cur().name)}</div><div class="bubble ai glass typing"><i></i><i></i><i></i></div></div>
+    <button class="stop-btn glass glass-btn" id="stopBtn">停止</button>`;
   $("#msgList").appendChild(typing);
-  const s=$("#chatScroll"); s.scrollTop=s.scrollHeight;
-  const start=()=>{ typing.remove();
-    const m={role:"ai",text:"",time:Date.now()}; list.push(m); save();
-    if(!state.stream||state.model==="short"){m.text=state.model==="short"?aiText.split("。")[0]+"。":aiText; renderMsgs(); renderHistory(); return;}
-    let n=0; const full=state.model==="long"?aiText+"  再多说一句：这件事不急，慢慢来才有味道。":aiText;
-    renderMsgs(); const lastBubble=$$("#msgList .bubble.ai").pop();
-    replyTimer=setInterval(()=>{ n+=2; m.text=full.slice(0,n); if(lastBubble) lastBubble.innerHTML=esc(m.text).replace(/\n/g,"</p><p>");
-      s.scrollTop=s.scrollHeight; if(n>=full.length){clearInterval(replyTimer); save(); renderMsgs(); renderHistory();} },24);
-  };
-  setTimeout(start, 650);
+  $("#emptyChat").style.display="none";
+  $("#chatScroll").scrollTop=$("#chatScroll").scrollHeight;
+  $("#stopBtn").onclick=()=>aborter.abort();
+  let res;
+  try{
+    res=await fetch(base+"/chat/completions",{method:"POST",signal:aborter.signal,
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.apiKey.trim()},
+      body:JSON.stringify({model:s.model.trim(),messages:apiMessages(),temperature:+s.temp,stream:true})});
+  }catch(e){typing.remove();pushError(e.name==="AbortError"?"停下来了。":"发不出去："+e.message+"，检查一下接口地址能不能打开。");return;}
+  if(!res.ok){typing.remove();let t="";try{t=(await res.json()).error?.message||"";}catch(e){}pushError("接口报错 "+res.status+"："+(t||"检查一下密钥和模型名对不对。"));return;}
+  if(!res.body){typing.remove();pushError("接口没有返回流，换个支持流式的模型试试。");return;}
+  typing.remove();
+  const ai={role:"assistant",content:"",time:Date.now()};
+  cur().messages.push(ai); save(); renderMsgs();
+  const reader=res.body.getReader(), decoder=new TextDecoder(); let buf="";
+  try{
+    while(true){
+      const {done,value}=await reader.read(); if(done)break;
+      buf+=decoder.decode(value,{stream:true});
+      const parts=buf.split("\n\n"); buf=parts.pop();
+      for(const part of parts){
+        const line=part.split("\n").find(l=>l.startsWith("data:"));
+        if(!line)continue; const data=line.slice(5).trim();
+        if(data==="[DONE]")continue;
+        try{const j=JSON.parse(data);const d=j.choices?.[0]?.delta?.content||"";if(d){ai.content+=d;
+          const b=$$("#msgList .bubble.ai").pop(); if(b)b.textContent=ai.content;
+          $("#chatScroll").scrollTop=$("#chatScroll").scrollHeight;}}catch(e){}
+      }
+    }
+  }catch(e){ if(e.name!=="AbortError")pushError("回包断了："+e.message); }
+  save(); renderMsgs(); renderRooms();
 }
-
-/* 输入框自适应 + 发送 */
+function regenerate(){
+  const list=cur().messages;
+  while(list.length&&list[list.length-1].role!=="me")list.pop();
+  if(!list.length){toast("没有可以重发的话");return;}
+  save(); renderMsgs(); callAI();
+}
+function send(){
+  const text=$("#input").value.trim();
+  if(!text&&!attachImg)return;
+  if(!configured()){toast("先去设置里填接口、密钥和模型");openDrawer();return;}
+  cur().messages.push({role:"me",content:text,img:attachImg||undefined,time:Date.now()});
+  $("#input").value=""; autoGrow(); clearAttach(); save(); renderMsgs(); renderRooms(); closeSidebarIfMobile();
+  callAI();
+}
+/* ---------- 输入与发送 ---------- */
 const input=$("#input");
 function autoGrow(){input.style.height="auto";input.style.height=Math.min(input.scrollHeight,132)+"px";}
 input.addEventListener("input",autoGrow);
 input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}});
-$("#sendBtn").onclick=()=>send();
-$("#newChatBtn").onclick=()=>{state.chats[state.persona]=[{role:"ai",text:cur().hello,time:Date.now()}];save();renderMsgs();renderHistory();toast("新对话开了");closeSidebarIfMobile();};
-$("#searchInput").addEventListener("input",renderHistory);
-$("#headSearchBtn").onclick=()=>{$("#sidebar").classList.add("show");$("#searchInput").focus();};
-$("#modelSel").value=state.model;
-$("#modelSel").onchange=e=>{state.model=e.target.value;save();toast("模型换成"+e.target.selectedOptions[0].text+"了");};
+$("#sendBtn").onclick=send;
+$("#attachBtn").onclick=()=>$("#imgFile").click();
+$("#imgFile").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{attachImg=r.result;$("#attachImg").src=attachImg;$("#attachPreview").classList.remove("hidden");};r.readAsDataURL(f);});
+function clearAttach(){attachImg=null;$("#attachPreview").classList.add("hidden");$("#imgFile").value="";}
+$("#attachRemove").onclick=clearAttach;
 
-/* 边栏（手机端抽屉） */
+/* ---------- 房间 ---------- */
+$("#newRoomBtn").onclick=()=>{
+  const n=state.rooms.length+1;
+  const r={id:uid(),name:"房间 "+String.fromCharCode(64+n),avatarImg:null,systemPrompt:"",messages:[]};
+  state.rooms.push(r);state.currentId=r.id;save();renderAll();closeSidebarIfMobile();
+  $("#roomNameInput").focus();$("#roomNameInput").select();
+};
+$("#roomNameInput").addEventListener("change",e=>{const v=e.target.value.trim();if(!v){e.target.value=cur().name;return;}
+  cur().name=v;save();renderRooms();renderHead();});
+$("#roomNameInput").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
+$("#searchInput").addEventListener("input",renderRooms);
+$("#exportBtn").onclick=()=>{
+  const txt=cur().messages.map(m=>((m.role==="me"?state.myName||"我":m.role==="error"?"提示":cur().name)+" "+fmtTime(m.time)+"："+(m.content||""))).join("\n\n");
+  download(new Blob([txt],{type:"text/plain;charset=utf-8"}),cur().name+"-对话.txt");toast("对话导出好了");};
+$("#clearBtn").onclick=()=>{if(!confirm("清空这个房间的对话？"))return;cur().messages=[];save();renderMsgs();renderRooms();};
+$("#exportAllBtn").onclick=()=>{download(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),"letters-chat-backup.json");toast("全部备份导出好了");};
+function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
+
+/* ---------- 边栏 ---------- */
 function closeSidebar(){$("#sidebar").classList.remove("show");}
-function closeSidebarIfMobile(){if(window.innerWidth<=860&&state.autoClose) closeSidebar();}
+function closeSidebarIfMobile(){if(window.innerWidth<=860)closeSidebar();}
 $("#menuBtn").onclick=()=>$("#sidebar").classList.toggle("show");
 $("#closeSideBtn").onclick=closeSidebar;
 
-/* 装扮抽屉 */
+/* ---------- 设置抽屉 ---------- */
 function openDrawer(){$("#drawer").classList.add("show");$("#scrim").classList.add("show");}
-function closeDrawer(){$("#drawer").classList.remove("show");$("#scrim").classList.remove("show");closeSheet();}
-$("#dressBtn").onclick=openDrawer; $("#headDressBtn").onclick=openDrawer; $("#memoryBtn").onclick=openDrawer;
-$("#drawerClose").onclick=closeDrawer; $("#scrim").onclick=()=>{closeDrawer();closeSidebar();};
+function closeDrawer(){$("#drawer").classList.remove("show");$("#scrim").classList.remove("show");}
+$("#settingsBtn").onclick=openDrawer;$("#headSettingsBtn").onclick=openDrawer;$("#emptyGoSet").onclick=openDrawer;
+$("#drawerClose").onclick=closeDrawer;$("#scrim").onclick=()=>{closeDrawer();closeSidebar();};
+$("#headAvatarBtn").onclick=()=>{openDrawer();$("#roomAvatarFile").click();};
 
-/* 加号弹出条 */
-function closeSheet(){$("#sheet").classList.remove("show");}
-$("#plusBtn").onclick=e=>{e.stopPropagation();$("#sheet").classList.toggle("show");};
-document.addEventListener("click",e=>{if(!e.target.closest("#sheet")&&!e.target.closest("#plusBtn")) closeSheet();});
-$("#sendImageBtn").onclick=()=>{closeSheet();$("#imgFile").click();};
-$("#sendFileBtn").onclick=()=>{closeSheet();$("#docFile").click();};
-$("#readAloudBtn").onclick=()=>{closeSheet();const l=chatOf(state.persona).filter(m=>m.role==="ai").pop(); if(l) speak(l.text); else toast("还没有可以朗读的回复");};
-$("#clearBtn").onclick=()=>{closeSheet();if(confirm("清空和"+cur().name+"的这段对话？")){state.chats[state.persona]=[];save();renderMsgs();renderHistory();toast("清空了");}};
-$("#micBtn").onclick=()=>toast("按住说话还没接语音接口，先打字吧");
-
-/* 上传：壁纸 / 头像 / 图片 / 文件 */
-function readFile(file,cb){if(!file) return; const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(file);}
-$("#wallFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{state.wallpaper=d;$("#wallImg").src=d;$("#wallPreview").src=d;save();toast("壁纸换好了");}));
-$("#myAvatarFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{state.myAvatar=d;$("#myAvatar").src=d;save();renderMsgs();toast("你的头像换好了");}));
-$("#aiAvatarFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{const p=cur();p.avatar=d;state["avatar_"+p.id]=d;save();renderAll();toast(p.name+"的头像换好了");}));
-$("#imgFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{const l=chatOf(state.persona);l.push({role:"me",text:"发了一张图片",img:d,time:Date.now()});save();renderMsgs();renderHistory();setTimeout(()=>{const m={role:"ai",text:"这张我收到了，颜色很衬今天的纸。想让我帮你配一句文案吗？",time:Date.now()};l.push(m);save();renderMsgs();renderHistory();},700);}));
-$("#docFile").addEventListener("change",e=>{const f=e.target.files[0];if(!f) return;const l=chatOf(state.persona);l.push({role:"me",text:"发了一个文件",file:f.name,time:Date.now()});save();renderMsgs();renderHistory();toast("文件发出去了");});
-
-/* 调节器：颜色 / 字号 / 玻璃 / 壁纸 */
-function applySettings(){
-  const s=state.settings, r=document.documentElement.style;
-  r.setProperty("--bubble-me",s.me); r.setProperty("--accent",s.accent); r.setProperty("--ink",s.ink);
-  r.setProperty("--font-size",s.fontSize+"px");
-  r.setProperty("--glass-blur",s.blur+"px"); r.setProperty("--glass-alpha",(s.alpha/100).toFixed(2));
-  r.setProperty("--glass-shine",s.shine);
-  const wall=$("#wallImg"); wall.style.filter=`saturate(.82) brightness(${s.wallBright/100}) contrast(.94)`;
-  wall.style.opacity=(1-s.wallFade/140).toFixed(2);
-  const disp=document.querySelector("#glassRefract feDisplacementMap"); if(disp) disp.setAttribute("scale",s.refract);
-  $("#refractVal").textContent=s.refract; $("#edgeVal").textContent=s.edge; $("#shineVal").textContent=s.shine;
-  $("#blurVal").textContent=s.blur; $("#alphaVal").textContent=s.alpha;
+/* 接入设置 */
+function bindSetting(id,key,parse){
+  const el=$(id); el.value=state.settings[key];
+  el.addEventListener("input",()=>{state.settings[key]=parse?parse(el.value):el.value;save();renderHead();});
 }
-function bindRange(id,key,fn){const el=$(id); el.value=state.settings[key]; el.addEventListener("input",()=>{state.settings[key]=+el.value; applySettings(); save(); if(fn) fn();});}
-bindRange("#refract","refract"); bindRange("#edge","edge"); bindRange("#shine","shine");
-bindRange("#blur","blur"); bindRange("#alpha","alpha"); bindRange("#wallBright","wallBright"); bindRange("#wallFade","wallFade");
+bindSetting("#baseUrl","baseUrl",v=>v.trim());
+bindSetting("#apiKey","apiKey",v=>v.trim());
+bindSetting("#modelName","model",v=>v.trim());
+$("#temperature").value=state.settings.temp;
+$("#temperature").addEventListener("input",e=>{state.settings.temp=+e.target.value;$("#tempVal").textContent=e.target.value;save();});
+$("#tempVal").textContent=state.settings.temp;
+$("#roomPrompt").addEventListener("input",e=>{cur().systemPrompt=e.target.value;save();});
+$("#myName").value=state.myName;
+$("#myName").addEventListener("input",e=>{state.myName=e.target.value;save();renderMsgs();renderHead();});
+$("#testConnBtn").onclick=async()=>{
+  const s=state.settings, st=$("#connStatus");
+  if(!configured()){st.textContent="先把接口地址、密钥、模型三项填全。";st.className="conn-status bad";return;}
+  st.textContent="正在测…";st.className="conn-status";
+  try{
+    const res=await fetch(s.baseUrl.trim().replace(/\/+$/,"")+"/models",{headers:{"Authorization":"Bearer "+s.apiKey.trim()}});
+    if(res.ok){st.textContent="通了，密钥和地址都没问题。";st.className="conn-status ok";}
+    else{let t="";try{t=(await res.json()).error?.message||"";}catch(e){}st.textContent="没通，"+res.status+"："+(t||"检查密钥和地址。");st.className="conn-status bad";}
+  }catch(e){st.textContent="没通："+e.message+"，检查接口地址能不能打开。";st.className="conn-status bad";}
+};
+
+/* 上传：壁纸 / 头像（只存本机） */
+function readFile(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file);}
+$("#wallFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{state.wallpaper=d;applyWallpaper();save();toast("壁纸换好了");}));
+$("#wallReset").onclick=()=>{state.wallpaper=null;applyWallpaper();save();toast("壁纸恢复成淡纸纹了");};
+$("#myAvatarFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{state.myAvatar=d;save();renderMsgs();renderHead();toast("你的头像换好了");}));
+$("#myAvatarReset").onclick=()=>{state.myAvatar=null;save();renderMsgs();renderHead();toast("恢复成字母了");};
+$("#roomAvatarFile").addEventListener("change",e=>readFile(e.target.files[0],d=>{cur().avatarImg=d;save();renderAll();toast("房间头像换好了");}));
+$("#roomAvatarReset").onclick=()=>{cur().avatarImg=null;save();renderAll();toast("恢复成字母了");};
+
+/* 外观调节器 */
+function applyWallpaper(){
+  const img=$("#wallImg"), pv=$("#wallPreview"), s=state.settings;
+  if(state.wallpaper){img.src=state.wallpaper;img.style.display="block";
+    img.style.filter=`brightness(${s.wallBright/100})`;img.style.opacity=(1-s.wallFade/140).toFixed(2);
+    pv.src=state.wallpaper;$("#wallPreviewLabel").textContent="当前壁纸 · 你传的图";}
+  else{img.style.display="none";pv.removeAttribute("src");$("#wallPreviewLabel").textContent="默认 · 淡纸纹，没有照片";}
+}
+function applySettings(){
+  const s=state.settings,r=document.documentElement.style;
+  r.setProperty("--bubble-me",s.me);r.setProperty("--accent",s.accent);r.setProperty("--ink",s.ink);
+  r.setProperty("--font-size",s.fontSize+"px");
+  r.setProperty("--glass-blur",s.blur+"px");r.setProperty("--glass-alpha",(s.alpha/100).toFixed(2));
+  r.setProperty("--glass-shine",s.shine);
+  const disp=document.querySelector("#glassRefract feDisplacementMap");if(disp)disp.setAttribute("scale",s.refract);
+  $("#refractVal").textContent=s.refract;$("#edgeVal").textContent=s.edge;$("#shineVal").textContent=s.shine;
+  $("#blurVal").textContent=s.blur;$("#alphaVal").textContent=s.alpha;
+  applyWallpaper();
+}
+function bindRange(id,key){const el=$(id);el.value=state.settings[key];
+  el.addEventListener("input",()=>{state.settings[key]=+el.value;applySettings();save();});}
+bindRange("#refract","refract");bindRange("#edge","edge");bindRange("#shine","shine");
+bindRange("#blur","blur");bindRange("#alpha","alpha");bindRange("#wallBright","wallBright");bindRange("#wallFade","wallFade");
 bindRange("#fontSize","fontSize");
-$("#meColor").value=state.settings.me; $("#accentColor").value=state.settings.accent; $("#inkColor").value=state.settings.ink;
+$("#meColor").value=state.settings.me;$("#accentColor").value=state.settings.accent;$("#inkColor").value=state.settings.ink;
 $("#meColor").addEventListener("input",e=>{state.settings.me=e.target.value;applySettings();save();});
 $("#accentColor").addEventListener("input",e=>{state.settings.accent=e.target.value;applySettings();save();});
 $("#inkColor").addEventListener("input",e=>{state.settings.ink=e.target.value;applySettings();save();});
-$("#streamToggle").checked=state.stream; $("#autoCloseToggle").checked=state.autoClose;
-$("#streamToggle").onchange=e=>{state.stream=e.target.checked;save();};
-$("#autoCloseToggle").onchange=e=>{state.autoClose=e.target.checked;save();};
-$("#memoryAdd").onclick=()=>{const v=$("#memoryInput").value.trim(); if(!v) return; state.memories.push(v); $("#memoryInput").value=""; save(); renderMemories(); toast("记下了");};
-$("#memoryInput").addEventListener("keydown",e=>{if(e.key==="Enter") $("#memoryAdd").click();});
-$("#exportBtn").onclick=()=>{
-  const txt=chatOf(state.persona).map(m=>(m.role==="me"?"我":""+cur().name)+" "+fmtTime(m.time)+"："+m.text).join("\n\n");
-  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));
-  a.download=cur().name+"-对话.txt"; a.click(); toast("对话导出好了");
-};
-$("#resetBtn").onclick=()=>{if(!confirm("恢复成默认那套浅奶粉样子？自己传的壁纸和头像会一起清掉。")) return;
-  localStorage.removeItem("rose-chat-v1"); location.reload();};
 
-/* 恢复自定义壁纸 / 头像 */
-if(state.wallpaper){$("#wallImg").src=state.wallpaper;$("#wallPreview").src=state.wallpaper;}
-if(state.myAvatar){$("#myAvatar").src=state.myAvatar;}
-PERSONAS.forEach(p=>{if(state["avatar_"+p.id]) p.avatar=state["avatar_"+p.id];});
-applySettings(); renderAll(); autoGrow();
+/* 记忆 */
+$("#memoryAdd").onclick=()=>{const v=$("#memoryInput").value.trim();if(!v)return;
+  state.memories.push(v);$("#memoryInput").value="";save();renderMemories();toast("记下了");};
+$("#memoryInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#memoryAdd").click();});
+
+/* 数据 */
+$("#exportJsonBtn").onclick=()=>{download(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),"letters-chat-backup.json");toast("备份导出好了");};
+$("#wipeBtn").onclick=()=>{if(!confirm("清空全部数据？所有房间、对话、记忆和设置都会删掉。"))return;
+  localStorage.removeItem(KEY);location.reload();};
+
+/* 初始化 */
+$("#dateLine").textContent=new Date().toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"long"});
+applySettings();renderAll();autoGrow();
 </script>
 </body>
 </html>
