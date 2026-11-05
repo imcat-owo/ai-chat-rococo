@@ -578,6 +578,7 @@ function renderMemories(){
 function renderHead(){
   const p=cur();
   $("#headAvatar").src=p.avatar; $("#headName").textContent=p.name; $("#headDesc").textContent=p.desc;
+  $("#input").placeholder="给"+p.name+"写点什么…";
   $("#aiAvatarEdit").src=p.avatar;
   $("#drawerPhoto").src=p.cover;
 }
